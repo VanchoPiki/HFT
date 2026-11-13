@@ -1,0 +1,360 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HFT Analytics</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@3.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+<style>
+  :root {
+    --bg: #f6f7f9; --panel: #ffffff; --text: #1d2330; --muted: #6b7385; --line: #e3e6ec;
+    --good: #138a52; --bad: #c8372d; --accent: #3358d4;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #12151b; --panel: #1b1f27; --text: #e6e9ef; --muted: #98a0b3; --line: #2a303b;
+      --good: #3ccf8e; --bad: #ff6b5f; --accent: #7d9bff;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--text);
+         font: 14px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  header { display: flex; flex-wrap: wrap; gap: 12px; align-items: baseline; justify-content: space-between;
+           padding: 16px 20px; border-bottom: 1px solid var(--line); background: var(--panel); }
+  h1 { margin: 0; font-size: 18px; }
+  h2 { margin: 0 0 10px; font-size: 15px; }
+  main { padding: 16px 20px; display: grid; gap: 16px; max-width: 1400px; margin: 0 auto; }
+  .panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; }
+  .tiles { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 12px; }
+  .tile { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 10px 14px; }
+  .tile .label { color: var(--muted); font-size: 12px; }
+  .tile .value { font-size: 20px; font-variant-numeric: tabular-nums; margin-top: 2px; }
+  .status { color: var(--muted); }
+  .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; background: var(--muted); }
+  .dot.live { background: var(--good); }
+  .dot.stale { background: var(--bad); }
+  .controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+  select { background: var(--panel); color: var(--text); border: 1px solid var(--line); border-radius: 6px; padding: 4px 8px; }
+  .chart-box { position: relative; height: 340px; }
+  .table-wrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+  th, td { text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--line); white-space: nowrap; }
+  th { color: var(--muted); font-weight: 500; font-size: 12px; }
+  .grid2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; }
+  .chart-box.small { height: 240px; }
+  button { background: var(--accent); color: #fff; border: 0; border-radius: 6px; padding: 6px 12px; cursor: pointer; font: inherit; }
+  button:disabled { opacity: .5; cursor: wait; }
+  a { color: var(--accent); }
+  details summary { cursor: pointer; color: var(--muted); margin-top: 10px; }
+  .summary { margin: 8px 0; }
+  .pos { color: var(--good); }
+  .neg { color: var(--bad); }
+  .muted { color: var(--muted); }
+  code { font-size: 12px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>HFT Analytics · Uniswap V3 / Arbitrum</h1>
+  <div class="status"><span id="dot" class="dot"></span><span id="status">ожидание данных от бота…</span></div>
+</header>
+<main>
+  <section class="tiles" id="tiles"></section>
+
+  <section class="panel">
+    <div class="controls">
+      <h2 style="margin:0">Цены по пулам</h2>
+      <select id="pair"></select>
+      <select id="minutes">
+        <option value="15">15 мин</option>
+        <option value="60" selected>1 час</option>
+        <option value="360">6 часов</option>
+        <option value="1440">24 часа</option>
+      </select>
+      <span class="muted">расхождение линий = спред между пулами</span>
+    </div>
+    <div class="chart-box"><canvas id="prices"></canvas></div>
+  </section>
+
+  <section class="panel">
+    <h2>Найденные возможности</h2>
+    <div class="table-wrap"><table id="opps"><thead><tr>
+      <th>время</th><th>блок</th><th>пара</th><th>маршрут</th><th>объём</th><th>чистая прибыль</th><th>в WETH</th><th>расчёт, мкс</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="panel">
+    <h2>Сделки</h2>
+    <div class="table-wrap"><table id="execs"><thead><tr>
+      <th>время</th><th>#</th><th>статус</th><th>tx</th><th>газ</th><th>прибыль, WETH</th><th>симуляция / подпись / отправка, мкс</th>
+    </tr></thead><tbody></tbody></table></div>
+  </section>
+
+  <section class="grid2">
+    <div class="panel">
+      <h2>Реальный PnL, WETH (нарастающим итогом)</h2>
+      <div class="chart-box small"><canvas id="pnl"></canvas></div>
+    </div>
+    <div class="panel">
+      <h2>Время решения бота: событие → готовый расчёт</h2>
+      <div class="chart-box small"><canvas id="latency"></canvas></div>
+      <div class="muted" id="latency-note"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h2>Исследование рынка</h2>
+    <div class="controls">
+      <button id="btn-discover">1. Найти пулы</button>
+      <select id="history-minutes">
+        <option value="15">15 мин</option>
+        <option value="30" selected>30 мин</option>
+        <option value="60">1 час</option>
+        <option value="180">3 часа</option>
+      </select>
+      <button id="btn-index">2. Скачать историю свопов</button>
+      <button id="btn-backtest">3. Бэктест</button>
+      <a href="/api/bot-config" download="generated.json">конфиг для бота ↓</a>
+    </div>
+    <div id="research-status" class="muted"></div>
+    <div id="research-summary" class="summary"></div>
+    <div class="table-wrap"><table id="backtest"><thead><tr>
+      <th>блок</th><th>пара</th><th>маршрут</th><th>объём</th><th>прибыль после газа, WETH</th>
+    </tr></thead><tbody></tbody></table></div>
+    <details><summary>Найденные пулы</summary>
+      <div class="table-wrap"><table id="discovered"><thead><tr>
+        <th>пара</th><th>комиссия</th><th>цена</th><th>ликвидность</th><th>адрес</th>
+      </tr></thead><tbody></tbody></table></div>
+    </details>
+  </section>
+</main>
+
+<script>
+const fmt = (v, d = 6) => (v === null || v === undefined) ? '—' : Number(v).toLocaleString('ru-RU', { maximumFractionDigits: d });
+const feeLabel = fee => (fee / 10000) + '%';
+const time = ts => new Date(ts).toLocaleTimeString('ru-RU');
+const sign = v => v > 0 ? 'pos' : (v < 0 ? 'neg' : '');
+const palette = ['#3358d4', '#e0732c', '#2a9d8f', '#b5379f', '#8a6d1f', '#5b6b8c'];
+
+let chart;
+let currentPair = null;
+
+async function getJson(url) {
+  const response = await fetch(url);
+  if (!response.ok) throw new Error(url + ': ' + response.status);
+  return response.json();
+}
+
+function tile(label, value, cls = '') {
+  return `<div class="tile"><div class="label">${label}</div><div class="value ${cls}">${value}</div></div>`;
+}
+
+async function refreshStats() {
+  const s = await getJson('/api/stats');
+  document.getElementById('tiles').innerHTML =
+    tile('Снимков пулов', fmt(s.poolSnapshots, 0)) +
+    tile('Возможностей', fmt(s.opportunities, 0)) +
+    tile('Ожидаемая прибыль, WETH', fmt(s.expectedProfitWeth), sign(s.expectedProfitWeth)) +
+    tile('Среднее время расчёта', fmt(s.avgComputeUs, 0) + ' мкс') +
+    tile('Сделок', fmt(s.executions, 0)) +
+    tile('Успешных', s.mined + s.reverted > 0 ? fmt(s.successRate * 100, 1) + '%' : '—') +
+    tile('Реальный PnL, WETH', fmt(s.realizedProfitWeth), sign(s.realizedProfitWeth)) +
+    tile('Газ потрачен, ETH', fmt(Number(s.gasSpentWei) / 1e18, 8));
+  const hb = s.lastHeartbeat;
+  const dot = document.getElementById('dot');
+  if (hb) {
+    const age = (Date.now() - new Date(hb.ts).getTime()) / 1000;
+    dot.className = 'dot ' + (age < 30 ? 'live' : 'stale');
+    document.getElementById('status').textContent =
+      `бот: блок ${hb.block}, пулов ${hb.pools}, режим ${hb.mode}, сигнал ${Math.round(age)} с назад`;
+  } else {
+    dot.className = 'dot';
+    document.getElementById('status').textContent = `бот не на связи · событий получено: ${s.eventsReceived}`;
+  }
+}
+
+async function refreshPairs() {
+  const pairs = await getJson('/api/pairs');
+  const select = document.getElementById('pair');
+  const known = [...select.options].map(o => o.value);
+  for (const p of pairs) {
+    if (!known.includes(p)) select.add(new Option(p, p));
+  }
+  if (!currentPair && pairs.length) {
+    currentPair = pairs.includes('WETH/USDC') ? 'WETH/USDC' : pairs[0];
+    select.value = currentPair;
+  }
+}
+
+async function refreshChart() {
+  if (!currentPair) return;
+  const minutes = document.getElementById('minutes').value;
+  const points = await getJson(`/api/prices?pair=${encodeURIComponent(currentPair)}&minutes=${minutes}`);
+  const byPool = new Map();
+  for (const p of points) {
+    if (!byPool.has(p.pool)) byPool.set(p.pool, { fee: p.fee, data: [] });
+    byPool.get(p.pool).data.push({ x: new Date(p.ts), y: p.price });
+  }
+  const datasets = [...byPool.entries()]
+    .sort((a, b) => a[1].fee - b[1].fee)
+    .map(([pool, s], i) => ({
+      label: `${feeLabel(s.fee)} · ${pool.slice(0, 8)}…`, data: s.data, stepped: true,
+      borderColor: palette[i % palette.length], backgroundColor: palette[i % palette.length],
+      borderWidth: 1.5, pointRadius: 0,
+    }));
+  if (!chart) {
+    chart = new Chart(document.getElementById('prices'), {
+      type: 'line',
+      data: { datasets },
+      options: {
+        animation: false, maintainAspectRatio: false, interaction: { mode: 'nearest', intersect: false },
+        scales: { x: { type: 'time', time: { tooltipFormat: 'HH:mm:ss' } }, y: { ticks: { precision: 6 } } },
+        plugins: { legend: { position: 'bottom' } },
+      },
+    });
+  } else {
+    chart.data.datasets = datasets;
+    chart.update('none');
+  }
+}
+
+async function refreshTables() {
+  const opps = await getJson('/api/opportunities?limit=30');
+  document.querySelector('#opps tbody').innerHTML = opps.map(o => `<tr>
+      <td>${time(o.ts)}</td><td>${o.block}</td><td>${o.pair}</td>
+      <td>${feeLabel(o.feeA)} → ${feeLabel(o.feeB)}</td>
+      <td>${fmt(o.amountInHuman)} ${o.symbolIn}</td>
+      <td class="${sign(o.netProfitHuman)}">${fmt(o.netProfitHuman)} ${o.symbolIn}</td>
+      <td class="${sign(o.netProfitWeth)}">${fmt(o.netProfitWeth, 8)}</td>
+      <td>${fmt(o.computeUs, 0)}</td></tr>`).join('') ||
+    '<tr><td colspan="8" class="muted">пока пусто</td></tr>';
+
+  const execs = await getJson('/api/executions?limit=30');
+  document.querySelector('#execs tbody').innerHTML = execs.map(e => `<tr>
+      <td>${time(e.ts)}</td><td>${e.opportunityId}</td>
+      <td class="${e.success === true ? 'pos' : (e.success === false || e.status.endsWith('failed') ? 'neg' : '')}">${e.status}</td>
+      <td><code>${e.txHash ? e.txHash.slice(0, 12) + '…' : '—'}</code></td>
+      <td>${fmt(e.gasUsed, 0)}</td>
+      <td class="${sign(e.realizedProfitWeth)}">${fmt(e.realizedProfitWeth, 8)}</td>
+      <td>${fmt(e.simulateUs, 0)} / ${fmt(e.signUs, 0)} / ${fmt(e.sendUs, 0)}</td></tr>`).join('') ||
+    '<tr><td colspan="7" class="muted">пока пусто</td></tr>';
+}
+
+let pnlChart;
+let latencyChart;
+
+async function refreshPnl() {
+  const points = await getJson('/api/pnl');
+  const data = points.map(p => ({ x: new Date(p.ts), y: p.cumulativeWeth }));
+  if (!pnlChart) {
+    pnlChart = new Chart(document.getElementById('pnl'), {
+      type: 'line',
+      data: { datasets: [{ label: 'PnL', data, stepped: true, borderColor: palette[2], backgroundColor: palette[2], pointRadius: 3 }] },
+      options: { animation: false, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                 scales: { x: { type: 'time', time: { tooltipFormat: 'HH:mm:ss' } } } },
+    });
+  } else {
+    pnlChart.data.datasets[0].data = data;
+    pnlChart.update('none');
+  }
+}
+
+async function refreshLatency() {
+  const l = await getJson('/api/latency');
+  const labels = l.decision.map(b => b.toUs > 1e12 ? `≥ ${b.fromUs}` : `${b.fromUs}–${b.toUs}`);
+  const counts = l.decision.map(b => b.count);
+  if (!latencyChart) {
+    latencyChart = new Chart(document.getElementById('latency'), {
+      type: 'bar',
+      data: { labels, datasets: [{ label: 'решений', data: counts, backgroundColor: palette[0] }] },
+      options: { animation: false, maintainAspectRatio: false, plugins: { legend: { display: false } },
+                 scales: { x: { title: { display: true, text: 'мкс' } }, y: { ticks: { precision: 0 } } } },
+    });
+  } else {
+    latencyChart.data.datasets[0].data = counts;
+    latencyChart.update('none');
+  }
+  document.getElementById('latency-note').textContent =
+    `медиана ${fmt(l.p50DecisionUs, 0)} мкс, p99 ${fmt(l.p99DecisionUs, 0)} мкс · исполнение в среднем: ` +
+    `симуляция ${fmt(l.avgSimulateUs, 0)}, подпись ${fmt(l.avgSignUs, 0)}, отправка ${fmt(l.avgSendUs, 0)} мкс`;
+}
+
+async function research(button, label, action) {
+  const buttons = document.querySelectorAll('.controls button');
+  buttons.forEach(b => b.disabled = true);
+  const status = document.getElementById('research-status');
+  status.textContent = label + '…';
+  try {
+    status.textContent = await action();
+  } catch (err) {
+    status.textContent = 'ошибка: ' + err.message;
+  } finally {
+    buttons.forEach(b => b.disabled = false);
+  }
+}
+
+async function postJson(url) {
+  const response = await fetch(url, { method: 'POST' });
+  const body = await response.json();
+  if (!response.ok) throw new Error(body.error || response.status);
+  return body;
+}
+
+async function showDiscovered() {
+  const d = await getJson('/api/discovery');
+  document.querySelector('#discovered tbody').innerHTML = d.pools
+    .filter(p => Number(p.liquidity) > 0)
+    .map(p => `<tr><td>${p.symbol0}/${p.symbol1}</td><td>${feeLabel(p.fee)}</td><td>${fmt(p.price, 6)}</td>
+               <td>${Number(p.liquidity).toExponential(2)}</td><td><code>${p.address}</code></td></tr>`).join('');
+  return d;
+}
+
+function showBacktest(report) {
+  const r = report.run;
+  document.getElementById('research-summary').innerHTML =
+    `Блоки ${r.fromBlock}…${r.toBlock} · ${fmt(r.swapEvents, 0)} свопов · газ ${fmt(r.gasUnits, 0)} × ${r.gasPriceGwei} gwei<br>` +
+    `<b>${r.opportunities}</b> возможностей в ${r.profitableBlocks} блоках, суммарно ` +
+    `<b class="${sign(r.totalProfitWeth)}">${fmt(r.totalProfitWeth, 6)} WETH</b>, лучшая ${fmt(r.bestProfitWeth, 6)} WETH`;
+  document.querySelector('#backtest tbody').innerHTML = report.top.map(o => `<tr>
+      <td>${o.block}</td><td>${o.pair}</td><td>${o.tokenIn}: ${feeLabel(o.feeA)} → ${feeLabel(o.feeB)}</td>
+      <td>${fmt(o.amountIn, 4)} ${o.tokenIn}</td><td class="pos">${fmt(o.profitWeth, 8)}</td></tr>`).join('') ||
+    '<tr><td colspan="5" class="muted">прибыльных моментов не было: рынок эффективен</td></tr>';
+}
+
+document.getElementById('btn-discover').addEventListener('click', e => research(e.target, 'опрашиваю factory', async () => {
+  await postJson('/api/discovery/run');
+  const d = await showDiscovered();
+  return `найдено пулов: ${d.pools.length}; торгуемые пары: ` +
+    Object.entries(d.tradablePairs).map(([p, n]) => `${p} (${n})`).join(', ');
+}));
+document.getElementById('btn-index').addEventListener('click', e => research(e.target, 'скачиваю свопы', async () => {
+  const minutes = document.getElementById('history-minutes').value;
+  const r = await postJson(`/api/history/index?minutes=${minutes}`);
+  return `свопов: ${fmt(r.events, 0)} в ${r.pools} пулах, блоки ${r.fromBlock}…${r.toBlock}`;
+}));
+document.getElementById('btn-backtest').addEventListener('click', e => research(e.target, 'прогоняю историю', async () => {
+  showBacktest(await postJson('/api/backtest'));
+  return 'бэктест готов';
+}));
+
+async function refresh() {
+  try {
+    await refreshStats();
+    await refreshPairs();
+    await Promise.all([refreshChart(), refreshTables(), refreshPnl(), refreshLatency()]);
+  } catch (err) {
+    document.getElementById('status').textContent = 'ошибка API: ' + err.message;
+  }
+}
+
+showDiscovered().catch(() => {});
+getJson('/api/backtests').then(runs => runs.length && getJson('/api/backtests/' + runs[0].id).then(showBacktest)).catch(() => {});
+
+document.getElementById('pair').addEventListener('change', e => { currentPair = e.target.value; refreshChart(); });
+document.getElementById('minutes').addEventListener('change', refreshChart);
+refresh();
+setInterval(refresh, 3000);
+</script>
+</body>
+</html>

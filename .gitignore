@@ -1,0 +1,17 @@
+# Secrets
+.env
+deploy/.env
+
+# OS / editors
+.DS_Store
+.idea/
+.vscode/
+
+# C++ (presets build into ~/.cache/hft-build: inside an iCloud-synced folder like
+# ~/Desktop, iCloud truncates object files while the compiler writes them)
+core/build/
+core/vcpkg_installed/
+
+# Foundry
+contracts/out/
+contracts/cache/

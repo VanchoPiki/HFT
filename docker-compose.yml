@@ -1,0 +1,30 @@
+name: hft
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: hft
+      POSTGRES_USER: hft
+      POSTGRES_PASSWORD: hft
+    ports:
+      - "5434:5432" # 5432/5433 are taken by local Postgres installs (Homebrew 14, EDB 18)
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hft -d hft"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  # Local fork of Arbitrum: docker compose --profile fork up -d anvil
+  anvil:
+    image: ghcr.io/foundry-rs/foundry:stable
+    profiles: ["fork"]
+    entrypoint: ["anvil"]
+    command: ["--host", "0.0.0.0", "--fork-url", "${ARBITRUM_RPC_URL:-}"]
+    ports:
+      - "8545:8545"
+
+volumes:
+  pgdata:

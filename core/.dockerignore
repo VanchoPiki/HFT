@@ -1,0 +1,4 @@
+build
+build.nosync
+vcpkg_installed
+.DS_Store

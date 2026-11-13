@@ -1,0 +1,16 @@
+{
+    "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
+    "name": "hft-core",
+    "version": "0.1.0",
+    "dependencies": [
+        "boost-asio",
+        "boost-beast",
+        "boost-multiprecision",
+        "openssl",
+        "simdjson",
+        "cppzmq",
+        "secp256k1",
+        "gtest",
+        "benchmark"
+    ]
+}

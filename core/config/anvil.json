@@ -1,0 +1,45 @@
+{
+  "chain_id": 42161,
+  "rpc_http": "http://127.0.0.1:8545",
+  "rpc_ws": "ws://127.0.0.1:8545",
+  "poll_interval_ms": 1000,
+  "rpc_timeout_ms": 120000,
+  "abi_dir": "../abi",
+
+  "uniswap_v3": {
+    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "quoter_v2": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+    "tick_lens": "0xbfd8137f7d1516D3ea5cA83523914859ec47F573"
+  },
+  "fee_tiers": [100, 500, 3000, 10000],
+  "tick_words_each_side": 1,
+
+  "tokens": {
+    "WETH": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+    "USDC": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831"
+  },
+  "pairs": [
+    ["WETH", "USDC"]
+  ],
+
+  "strategy": {
+    "min_profit_weth": 0.0001,
+    "gas_units": 350000,
+    "max_input_weth": 100.0
+  },
+
+  "telemetry": {
+    "zmq_endpoint": "tcp://127.0.0.1:5555"
+  },
+
+  "execution": {
+    "enabled": true,
+    "contract": "",
+    "private_key_env": "ANVIL_PRIVATE_KEY",
+    "gas_limit": 1500000,
+    "max_fee_multiplier": 2.0,
+    "min_profit_share": 0.5,
+    "simulate": true,
+    "receipt_timeout_ms": 20000
+  }
+}

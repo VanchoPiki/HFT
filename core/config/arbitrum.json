@@ -1,0 +1,56 @@
+{
+  "chain_id": 42161,
+  "rpc_http": "https://arb1.arbitrum.io/rpc",
+  "rpc_http_env": "ARBITRUM_RPC_URL",
+  "rpc_ws": "",
+  "rpc_ws_env": "ARBITRUM_WS_URL",
+  "poll_interval_ms": 1000,
+  "rpc_timeout_ms": 10000,
+  "abi_dir": "../abi",
+
+  "uniswap_v3": {
+    "factory": "0x1F98431c8aD98523631AE4a59f267346ea31F984",
+    "quoter_v2": "0x61fFE014bA17989E743c5F6cB21bF9697530B21e",
+    "tick_lens": "0xbfd8137f7d1516D3ea5cA83523914859ec47F573"
+  },
+  "fee_tiers": [100, 500, 3000, 10000],
+  "tick_words_each_side": 2,
+
+  "tokens": {
+    "WETH": "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1",
+    "USDC": "0xaf88d065e77c8cC2239327C5EDb3A432268e5831",
+    "USDC.e": "0xFF970A61A04b1cA14834A43f5dE4533eBDDB5CC8",
+    "USDT": "0xFd086bC7CD5C481DCC9C85ebE478A1C0b69FCbb9",
+    "WBTC": "0x2f2a2543B76A4166549F7aaB2e75Bef0aefC5B0f",
+    "ARB": "0x912CE59144191C1204E64559FE8253a0e49E6548"
+  },
+  "pairs": [
+    ["WETH", "USDC"],
+    ["WETH", "USDC.e"],
+    ["WETH", "USDT"],
+    ["WBTC", "WETH"],
+    ["ARB", "WETH"]
+  ],
+
+  "strategy": {
+    "min_profit_weth": 0.00001,
+    "gas_units": 350000,
+    "max_input_weth": 5.0
+  },
+
+  "telemetry": {
+    "zmq_endpoint": "tcp://127.0.0.1:5555",
+    "zmq_endpoint_env": "HFT_TELEMETRY_ENDPOINT"
+  },
+
+  "execution": {
+    "enabled": false,
+    "contract": "",
+    "private_key_env": "PRIVATE_KEY",
+    "gas_limit": 1500000,
+    "max_fee_multiplier": 2.0,
+    "min_profit_share": 0.5,
+    "simulate": true,
+    "receipt_timeout_ms": 30000
+  }
+}

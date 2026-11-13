@@ -1,0 +1,62 @@
+# Production stack for one server: bot (monitor mode) -> analytics -> Postgres, behind Caddy.
+#   cp deploy/.env.example deploy/.env   # fill in
+#   docker compose -f deploy/docker-compose.yml up -d --build
+# Only Caddy publishes ports. The dashboard is public read-only; POST endpoints (pool
+# discovery, history, backtest) spend RPC quota and need the admin password.
+name: hft-prod
+
+services:
+  postgres:
+    image: postgres:17
+    environment:
+      POSTGRES_DB: hft
+      POSTGRES_USER: hft
+      POSTGRES_PASSWORD: ${DB_PASSWORD:?set DB_PASSWORD in deploy/.env}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hft -d hft"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  analytics:
+    build: ../analytics
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/hft
+      DB_USER: hft
+      DB_PASSWORD: ${DB_PASSWORD}
+      BOT_EVENTS_ENDPOINT: tcp://bot:5555
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: unless-stopped
+
+  bot:
+    build: ../core
+    environment:
+      ARBITRUM_RPC_URL: ${ARBITRUM_RPC_URL:-}
+      ARBITRUM_WS_URL: ${ARBITRUM_WS_URL:-}
+      HFT_TELEMETRY_ENDPOINT: tcp://*:5555  # reachable from the analytics container
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2.10
+    ports:
+      - "${HTTP_PORT:-80}:80"
+      - "${HTTPS_PORT:-443}:443"
+    environment:
+      SITE_ADDRESS: ${SITE_ADDRESS:-:80}
+      ADMIN_USER: ${ADMIN_USER:-admin}
+      ADMIN_PASSWORD_HASH: ${ADMIN_PASSWORD_HASH:?set ADMIN_PASSWORD_HASH in deploy/.env}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+    depends_on:
+      - analytics
+    restart: unless-stopped
+
+volumes:
+  pgdata:
+  caddy_data:

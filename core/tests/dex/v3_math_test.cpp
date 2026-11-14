@@ -27,7 +27,7 @@ TEST(TickMathTest, TickAtRatioIsTheInverse) {
     for (int t : ticks) {
         const u256 ratio = sqrt_ratio_at_tick(t);
         EXPECT_EQ(tick_at_sqrt_ratio(ratio), t);
-        EXPECT_EQ(tick_at_sqrt_ratio(ratio - 1), t - 1);  // greatest tick with ratio <= price
+        EXPECT_EQ(tick_at_sqrt_ratio(ratio - 1), t - 1);
         EXPECT_LT(ratio, sqrt_ratio_at_tick(t + 1));
     }
 }
@@ -61,7 +61,7 @@ TEST(SqrtPriceMathTest, RoundingUpAddsAtMostOneWei) {
         const u256 down = delta(a, b, liquidity, false);
         const u256 up = delta(a, b, liquidity, true);
         EXPECT_TRUE(up == down || up == down + 1);
-        EXPECT_EQ(delta(b, a, liquidity, false), down);  // argument order does not matter
+        EXPECT_EQ(delta(b, a, liquidity, false), down);
     }
 }
 
@@ -69,11 +69,11 @@ TEST(SwapMathTest, PartialStepSpendsTheWholeInput) {
     const u256 amount("1000000000000000");
     const SwapStep step =
         compute_swap_step(kQ96, sqrt_ratio_at_tick(-1000), u256("1000000000000000000"), amount, 500);
-    EXPECT_NE(step.sqrt_price_next, sqrt_ratio_at_tick(-1000));  // target not reached
-    EXPECT_LT(step.sqrt_price_next, kQ96);                       // price of token0 went down
+    EXPECT_NE(step.sqrt_price_next, sqrt_ratio_at_tick(-1000));
+    EXPECT_LT(step.sqrt_price_next, kQ96);
     EXPECT_EQ(step.amount_in + step.fee_amount, amount);
     EXPECT_GT(step.amount_out, 0);
-    EXPECT_LT(step.amount_out, step.amount_in);  // below 1:1 after price impact
+    EXPECT_LT(step.amount_out, step.amount_in);
 }
 
 TEST(SwapMathTest, FullStepStopsAtTheTarget) {
@@ -85,5 +85,5 @@ TEST(SwapMathTest, FullStepStopsAtTheTarget) {
     EXPECT_EQ(step.fee_amount, mul_div_rounding_up(step.amount_in, 3000, 1'000'000 - 3000));
 }
 
-}  // namespace
-}  // namespace hft::dex::v3
+}
+}

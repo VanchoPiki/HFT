@@ -2,13 +2,8 @@ package com.hft.analytics.history;
 
 import java.math.BigInteger;
 
-/**
- * Decodes the data of a Uniswap V3 Swap log by hand: five 32-byte words, two of them signed
- * (two's complement). Kept independent of web3j so it can be tested on raw hex.
- */
 public final class SwapLogDecoder {
 
-	/** Non-indexed fields of Swap(sender, recipient, amount0, amount1, sqrtPriceX96, liquidity, tick). */
 	public record SwapData(BigInteger amount0, BigInteger amount1, BigInteger sqrtPriceX96, BigInteger liquidity,
 			int tick) {
 	}

@@ -13,7 +13,6 @@ import com.hft.analytics.domain.PoolSnapshotRepository;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-/** End to end over a real ZeroMQ socket, playing the role of the C++ bot. */
 @Import(TestcontainersConfiguration.class)
 @SpringBootTest(properties = { "hft.bot.listener-enabled=true", "hft.bot.events-endpoint=tcp://127.0.0.1:55872" })
 class BotEventListenerTests {
@@ -28,7 +27,6 @@ class BotEventListenerTests {
 				 "fee":3000,"price":2348.6,"tick":-198700,"sqrt_price_x96":"1","liquidity":"1"}""";
 		try (ZContext context = new ZContext(); ZMQ.Socket pub = context.createSocket(SocketType.PUB)) {
 			pub.bind("tcp://127.0.0.1:55872");
-			// PUB/SUB drops messages until the subscription has propagated: keep publishing.
 			for (int i = 0; i < 100 && snapshots.findPairs().isEmpty(); i++) {
 				pub.send(event);
 				Thread.sleep(100);

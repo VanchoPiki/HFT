@@ -14,12 +14,12 @@ struct PoolInfo {
     eth::Address address;
     eth::Address token0;
     eth::Address token1;
-    std::uint32_t fee = 0;  // hundredths of a basis point: 500 = 0.05%
+    std::uint32_t fee = 0;
     int tick_spacing = 0;
 };
 
 struct TickInfo {
-    eth::i256 liquidity_net;  // added when the price crosses the tick upwards
+    eth::i256 liquidity_net;
     eth::u256 liquidity_gross;
 };
 
@@ -27,10 +27,9 @@ struct Quote {
     eth::u256 amount_out;
     eth::u256 sqrt_price_after;
     int tick_after = 0;
-    int ticks_crossed = 0;  // initialized ticks crossed, as QuoterV2 reports
+    int ticks_crossed = 0;
 };
 
-// Local replica of one Uniswap V3 pool, kept current by applying its events in order.
 class V3Pool {
 public:
     explicit V3Pool(PoolInfo info) : info_(info) {}
@@ -42,26 +41,18 @@ public:
     std::uint64_t block() const { return block_; }
     const std::map<int, TickInfo>& ticks() const { return ticks_; }
 
-    // State as of the end of `block` (read over RPC). Clears tick data.
     void reset(const eth::u256& sqrt_price_x96, int tick, const eth::u256& liquidity,
                std::uint64_t block);
-    // Initialized ticks are known for [min_tick, max_tick] (whole tick-bitmap words).
     void set_tick(int tick, const eth::i256& liquidity_net, const eth::u256& liquidity_gross);
     void set_known_tick_range(int min_tick, int max_tick);
     int known_min_tick() const { return known_min_tick_; }
     int known_max_tick() const { return known_max_tick_; }
     bool has_tick_data() const { return known_min_tick_ <= known_max_tick_; }
 
-    // Events must be applied in chain order; older ones (already part of the state) are
-    // ignored and return false.
     bool apply(const PoolEvent& event, std::uint64_t block, std::uint64_t log_index);
 
-    // Mid price: token1 per token0 in raw units (no decimals), (sqrtPriceX96 / 2^96)^2.
     double raw_price() const;
 
-    // Exact-input swap simulated on the local state, step by step like UniswapV3Pool.swap
-    // (no price limit). nullopt if the pool has no tick data or the swap would run past
-    // the loaded ticks, where the result could be wrong.
     std::optional<Quote> quote_exact_input(bool zero_for_one, const eth::u256& amount_in) const;
 
 private:
@@ -79,4 +70,4 @@ private:
     int known_max_tick_ = 0;
 };
 
-}  // namespace hft::dex
+}

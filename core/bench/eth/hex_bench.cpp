@@ -7,7 +7,6 @@
 
 namespace {
 
-// 32 bytes = one ABI word / bytes32; 1 KiB is a typical swap calldata ballpark.
 std::vector<std::uint8_t> make_bytes(std::size_t n) {
     std::vector<std::uint8_t> bytes(n);
     for (std::size_t i = 0; i < n; ++i) {
@@ -44,4 +43,4 @@ void BM_FromHexVector(benchmark::State& state) {
 }
 BENCHMARK(BM_FromHexVector)->Arg(32)->Arg(1024);
 
-}  // namespace
+}

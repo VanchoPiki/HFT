@@ -19,14 +19,9 @@ import com.hft.analytics.chain.UniswapAbi;
 import com.hft.analytics.discovery.DiscoveredPool;
 import com.hft.analytics.discovery.DiscoveredPoolRepository;
 
-/**
- * Downloads historical Swap events of the discovered pools (eth_getLogs in chunks) and
- * stores them for the backtester. Bulk inserts go through JDBC batches, not JPA.
- */
 @Service
 public class SwapHistory {
 
-	/** One stored Swap event: the pool's complete price state right after it. */
 	public record SwapRecord(String pool, long block, int logIndex, BigInteger sqrtPriceX96, BigInteger liquidity,
 			int tick) {
 	}
@@ -36,7 +31,6 @@ public class SwapHistory {
 
 	private static final Logger log = LoggerFactory.getLogger(SwapHistory.class);
 
-	/** Arbitrum One produces a block about every 250 ms. */
 	public static final int BLOCKS_PER_MINUTE = 240;
 
 	private final ChainClient chain;
@@ -55,7 +49,6 @@ public class SwapHistory {
 		this.jdbc = jdbc;
 	}
 
-	/** Indexes the last {@code minutes} of swaps of every discovered pool that has liquidity. */
 	@Transactional
 	public IndexResult indexRecent(int minutes) throws IOException {
 		List<String> addresses = pools.findAll()
@@ -100,7 +93,6 @@ public class SwapHistory {
 		return rows.size();
 	}
 
-	/** Stored swaps in chain order. */
 	public List<SwapRecord> load(long fromBlock, long toBlock) {
 		return jdbc.query("""
 				select pool, block, log_index, sqrt_price_x96, liquidity, tick from swap_events
@@ -111,17 +103,14 @@ public class SwapHistory {
 				fromBlock, toBlock);
 	}
 
-	/** A contiguous block range that was indexed completely. */
 	public record Range(long fromBlock, long toBlock, long events) {
 	}
 
-	/** The most recently indexed range, if any. */
 	public java.util.Optional<Range> latestRange() {
 		return jdbc.query("select from_block, to_block, events from indexed_ranges order by id desc limit 1",
 				(rs, i) -> new Range(rs.getLong(1), rs.getLong(2), rs.getLong(3))).stream().findFirst();
 	}
 
-	/** True if [fromBlock, toBlock] lies inside one indexed range (no gaps in between). */
 	public boolean isContiguous(long fromBlock, long toBlock) {
 		Integer n = jdbc.queryForObject(
 				"select count(*) from indexed_ranges where from_block <= ? and to_block >= ?", Integer.class, fromBlock,

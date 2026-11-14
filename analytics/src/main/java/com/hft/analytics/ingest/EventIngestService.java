@@ -17,7 +17,6 @@ import com.hft.analytics.domain.OpportunityRepository;
 import com.hft.analytics.domain.PoolSnapshot;
 import com.hft.analytics.domain.PoolSnapshotRepository;
 
-/** Turns one JSON event from the bot (format: schema/events.md) into database rows. */
 @Service
 public class EventIngestService {
 
@@ -42,10 +41,6 @@ public class EventIngestService {
 		this.status = status;
 	}
 
-	/**
-	 * Stores the event.
-	 * @throws IllegalArgumentException if the message is not a valid event
-	 */
 	@Transactional
 	public void ingest(String message) {
 		final JsonNode e;
@@ -83,7 +78,7 @@ public class EventIngestService {
 		long run = e.path("run").asLong();
 		long id = e.path("id").asLong();
 		if (opportunities.existsByRunIdAndOpportunityId(run, id)) {
-			return; // duplicate delivery
+			return;
 		}
 		opportunities.save(new Opportunity(run, id, ts(e), e.path("block").asLong(), text(e, "pair"),
 				text(e, "pool_a"), e.path("fee_a").asInt(), text(e, "pool_b"), e.path("fee_b").asInt(),
@@ -97,7 +92,6 @@ public class EventIngestService {
 		String txHash = text(e, "tx_hash");
 		Execution execution = executions.findByTxHash(txHash).orElse(null);
 		if (execution == null) {
-			// The execution event was lost (e.g. analytics started later): keep the result anyway.
 			execution = new Execution(e.path("run").asLong(), e.path("opportunity_id").asLong(), ts(e), "sent", txHash,
 					null, null, null, null, null, null, null);
 		}

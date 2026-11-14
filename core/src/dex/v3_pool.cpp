@@ -8,14 +8,11 @@
 namespace hft::dex {
 namespace {
 
-// TickBitmap.nextInitializedTickWithinOneWord on top of the ordered map of initialized
-// ticks. Stepping word by word (not straight to the next initialized tick) matters: every
-// step rounds, so the result only matches the chain to the wei with the same steps.
 std::pair<int, bool> next_initialized_tick_within_one_word(const std::map<int, TickInfo>& ticks,
                                                             int tick, int spacing, bool lte) {
     int compressed = tick / spacing;
     if (tick < 0 && tick % spacing != 0) {
-        --compressed;  // round towards negative infinity
+        --compressed;
     }
     if (lte) {
         const int word_start = compressed - (compressed & 0xff);
@@ -34,7 +31,7 @@ std::pair<int, bool> next_initialized_tick_within_one_word(const std::map<int, T
     return {word_end * spacing, false};
 }
 
-}  // namespace
+}
 
 void V3Pool::reset(const eth::u256& sqrt_price_x96, int tick, const eth::u256& liquidity,
                    std::uint64_t block) {
@@ -42,7 +39,7 @@ void V3Pool::reset(const eth::u256& sqrt_price_x96, int tick, const eth::u256& l
     tick_ = tick;
     liquidity_ = liquidity;
     block_ = block;
-    log_index_ = std::numeric_limits<std::uint64_t>::max();  // the whole block is included
+    log_index_ = std::numeric_limits<std::uint64_t>::max();
     ticks_.clear();
     known_min_tick_ = 1;
     known_max_tick_ = 0;
@@ -66,11 +63,9 @@ bool V3Pool::advance(std::uint64_t block, std::uint64_t log_index) {
     return true;
 }
 
-// Mirrors Tick.update in v3-core: gross liquidity tracks whether the tick is initialized,
-// net liquidity is what crossing the tick upwards adds.
 void V3Pool::update_tick(int tick, const eth::i256& delta, bool upper) {
     if (!has_tick_data() || tick < known_min_tick_ || tick > known_max_tick_) {
-        return;  // outside the loaded words we would only store partial information
+        return;
     }
     TickInfo& info = ticks_[tick];
     const eth::i256 gross = static_cast<eth::i256>(info.liquidity_gross) + delta;
@@ -94,7 +89,7 @@ bool V3Pool::apply(const PoolEvent& event, std::uint64_t block, std::uint64_t lo
     }
     const auto& liq = std::get<LiquidityEvent>(event);
     if (liq.liquidity_delta == 0) {
-        return true;  // Burn of 0 only pokes fees
+        return true;
     }
     update_tick(liq.tick_lower, liq.liquidity_delta, false);
     update_tick(liq.tick_upper, liq.liquidity_delta, true);
@@ -126,7 +121,7 @@ std::optional<Quote> V3Pool::quote_exact_input(bool zero_for_one, const eth::u25
             next_initialized_tick_within_one_word(ticks_, tick, info_.tick_spacing, zero_for_one);
         tick_next = std::clamp(tick_next, v3::kMinTick, v3::kMaxTick);
         if (tick_next < known_min_tick_ || tick_next > known_max_tick_) {
-            return std::nullopt;  // ticks beyond this point were never loaded
+            return std::nullopt;
         }
         const eth::u256 sqrt_next = v3::sqrt_ratio_at_tick(tick_next);
         const bool past_limit = zero_for_one ? sqrt_next < limit : sqrt_next > limit;
@@ -152,4 +147,4 @@ std::optional<Quote> V3Pool::quote_exact_input(bool zero_for_one, const eth::u25
     return quote;
 }
 
-}  // namespace hft::dex
+}

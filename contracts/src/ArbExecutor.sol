@@ -3,19 +3,12 @@ pragma solidity ^0.8.24;
 
 import {IUniswapV3Pool} from "./interfaces/IUniswapV3Pool.sol";
 
-/// Executes a two-pool Uniswap V3 arbitrage atomically, without capital, via a flash swap:
-///   1. pool A swaps exactly `amountIn` of tokenIn -> tokenOut and sends tokenOut first,
-///   2. inside A's callback all tokenOut is sold back to tokenIn in pool B,
-///   3. pool A is paid `amountIn` of tokenIn from the proceeds; the rest is profit.
-/// If the cycle does not leave at least `minProfit` tokenIn in the contract, everything
-/// reverts, so a failed arbitrage only costs gas.
 contract ArbExecutor {
     uint160 internal constant MIN_SQRT_RATIO_PLUS_ONE = 4295128740;
     uint160 internal constant MAX_SQRT_RATIO_MINUS_ONE = 1461446703485210103287273052203988822378723970341;
 
     address public immutable owner;
 
-    /// The only pool allowed to call uniswapV3SwapCallback at this moment.
     address private expectedCaller;
 
     event Arbitrage(
@@ -37,7 +30,6 @@ contract ArbExecutor {
         _;
     }
 
-    /// Both pools must trade the tokenIn/tokenOut pair.
     function execute(
         address poolA,
         address poolB,
@@ -46,7 +38,6 @@ contract ArbExecutor {
         uint256 amountIn,
         uint256 minProfit
     ) external onlyOwner returns (uint256 profit) {
-        // A negative amountSpecified would turn this into an exact-output swap.
         if (amountIn > uint256(type(int256).max)) revert AmountTooLarge();
         uint256 balanceBefore = _balanceOf(tokenIn);
         bool zeroForOne = tokenIn < tokenOut;
@@ -69,8 +60,6 @@ contract ArbExecutor {
         emit Arbitrage(poolA, poolB, tokenIn, amountIn, profit);
     }
 
-    /// data = (poolB, payToken, otherToken). poolB != 0 marks the first leg (pool A): the
-    /// second swap happens before pool A is paid. Positive deltas are what we owe.
     function uniswapV3SwapCallback(int256 amount0Delta, int256 amount1Delta, bytes calldata data) external {
         if (msg.sender != expectedCaller) revert UnexpectedCallback();
         (address poolB, address payToken, address otherToken) = abi.decode(data, (address, address, address));
@@ -101,7 +90,6 @@ contract ArbExecutor {
         return abi.decode(ret, (uint256));
     }
 
-    /// Works with tokens that return no bool from transfer (e.g. old USDT).
     function _transfer(address token, address to, uint256 amount) private {
         (bool ok, bytes memory ret) = token.call(abi.encodeWithSignature("transfer(address,uint256)", to, amount));
         if (!ok || (ret.length != 0 && !abi.decode(ret, (bool)))) revert TransferFailed();

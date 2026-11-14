@@ -84,7 +84,7 @@ class EventIngestServiceTests {
 	@Test
 	void storesEachOpportunityOnceAndKeepsNegativeAmounts() {
 		ingest.ingest(OPPORTUNITY);
-		ingest.ingest(OPPORTUNITY); // duplicate delivery
+		ingest.ingest(OPPORTUNITY);
 		assertThat(opportunities.count()).isEqualTo(1);
 		Opportunity o = opportunities.findAll().getFirst();
 		assertThat(o.getNetProfit()).isEqualTo(new BigInteger("-79023708674793500"));

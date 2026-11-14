@@ -19,7 +19,6 @@ protected:
     V3EventDecoder decoder{abi};
 };
 
-// The same real Swap log as in rpc_types_test; expected values from `cast abi-decode`.
 TEST_F(V3EventsTest, DecodesRealSwap) {
     net::Log log;
     log.topics = {abi.swap_topic, eth::Hash{}, eth::Hash{}};
@@ -70,5 +69,5 @@ TEST_F(V3EventsTest, MalformedSwapThrows) {
     EXPECT_THROW(decoder.decode(log), eth::abi::Error);
 }
 
-}  // namespace
-}  // namespace hft::dex
+}
+}

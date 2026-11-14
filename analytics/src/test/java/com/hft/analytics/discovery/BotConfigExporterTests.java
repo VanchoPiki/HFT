@@ -30,8 +30,8 @@ class BotConfigExporterTests {
 	final BotConfigExporter exporter = new BotConfigExporter(JsonMapper.builder().build(), CHAIN);
 
 	final List<DiscoveredPool> pools = List.of(pool("0x1", "WETH", "USDC", 500, 10), pool("0x2", "WETH", "USDC", 3000, 5),
-			pool("0x3", "WETH", "ARB", 500, 7), pool("0x4", "WETH", "ARB", 3000, 0), // empty pool
-			pool("0x5", "USDC", "DAI", 100, 9), pool("0x6", "USDC", "DAI", 500, 9)); // no WETH
+			pool("0x3", "WETH", "ARB", 500, 7), pool("0x4", "WETH", "ARB", 3000, 0),
+			pool("0x5", "USDC", "DAI", 100, 9), pool("0x6", "USDC", "DAI", 500, 9));
 
 	@Test
 	void onlyPairsWithWethAndTwoLiquidPoolsAreTradable() {

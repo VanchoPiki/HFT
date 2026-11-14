@@ -14,7 +14,6 @@ import com.hft.analytics.chain.ChainProperties;
 import com.hft.analytics.discovery.DiscoveredPoolRepository;
 import com.hft.analytics.history.SwapHistory;
 
-/** Runs the backtester over the indexed swap history and stores the results. */
 @Service
 public class BacktestService {
 
@@ -51,7 +50,6 @@ public class BacktestService {
 		long from = fromBlock != null ? fromBlock : latest.fromBlock();
 		long to = toBlock != null ? toBlock : latest.toBlock();
 		if (!history.isContiguous(from, to)) {
-			// Across a gap a pool's last swap is stale and would show dislocations that never existed.
 			throw new IllegalStateException("blocks " + from + ".." + to + " are not covered by one indexing run");
 		}
 

@@ -10,10 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * One attempt to execute an opportunity (event {@code execution}), completed by the
- * {@code tx_result} event once the transaction is mined.
- */
 @Entity
 @Table(name = "executions")
 public class Execution {
@@ -95,7 +91,6 @@ public class Execution {
 		this.sendUs = sendUs;
 	}
 
-	/** Applies a {@code tx_result} event. */
 	public void recordResult(boolean success, long minedBlock, long gasUsed, BigInteger effectiveGasPrice,
 			BigInteger realizedProfit, double realizedProfitWeth, Instant minedAt) {
 		this.success = success;

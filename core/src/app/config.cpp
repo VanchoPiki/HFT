@@ -24,7 +24,6 @@ std::string env_or(const char* name, std::string fallback) {
     return value != nullptr && *value != '\0' ? std::string(value) : std::move(fallback);
 }
 
-// Optional field: `out` keeps its default when the key is missing or has another type.
 template <typename T>
 void read_optional(simdjson::dom::element object, const char* key, T& out) {
     T value{};
@@ -39,7 +38,7 @@ std::string trim(std::string s) {
     return first == std::string::npos ? std::string() : s.substr(first, last - first + 1);
 }
 
-}  // namespace
+}
 
 Config Config::load(const std::filesystem::path& path) {
     simdjson::dom::parser parser;
@@ -49,8 +48,6 @@ Config Config::load(const std::filesystem::path& path) {
 
     Config cfg;
     cfg.chain_id = doc["chain_id"];
-    // Each config names the environment variables allowed to override its endpoints, so a
-    // mainnet key in .env can never leak into e.g. the local fork config.
     cfg.rpc_http = std::string_view(doc["rpc_http"]);
     cfg.rpc_ws = std::string_view(doc["rpc_ws"]);
     std::string_view env_name;
@@ -81,12 +78,11 @@ Config Config::load(const std::filesystem::path& path) {
     }
     for (simdjson::dom::array pair : doc["pairs"].get_array()) {
         cfg.pairs.emplace_back(std::string_view(pair.at(0)), std::string_view(pair.at(1)));
-        (void)cfg.token_address(cfg.pairs.back().first);  // validate symbols early
+        (void)cfg.token_address(cfg.pairs.back().first);
         (void)cfg.token_address(cfg.pairs.back().second);
     }
-    (void)cfg.token_address("WETH");  // profits and gas are valued in WETH
+    (void)cfg.token_address("WETH");
 
-    // Optional sections: missing keys keep the defaults from the structs.
     simdjson::dom::element strat;
     if (doc["strategy"].get(strat) == simdjson::SUCCESS) {
         read_optional(strat, "min_profit_weth", cfg.strategy.min_profit_weth);
@@ -155,7 +151,7 @@ void load_dotenv() {
             const std::string key = trim(line.substr(0, eq));
             const std::string value = trim(line.substr(eq + 1));
             if (!value.empty()) {
-                setenv(key.c_str(), value.c_str(), /*overwrite=*/0);
+                setenv(key.c_str(), value.c_str(), 0);
             }
         }
         log::info("config: loaded {}", file.string());
@@ -163,4 +159,4 @@ void load_dotenv() {
     }
 }
 
-}  // namespace hft::app
+}

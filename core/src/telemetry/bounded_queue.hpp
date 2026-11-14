@@ -8,8 +8,6 @@
 
 namespace hft::telemetry {
 
-// Multi-producer queue with a fixed capacity. Producers never block: try_push fails when
-// the queue is full, so a slow consumer can never stall the trading thread.
 template <typename T>
 class BoundedQueue {
 public:
@@ -27,7 +25,6 @@ public:
         return true;
     }
 
-    // Waits up to `timeout` for an item. Returns false on timeout or when closed and empty.
     bool pop(T& out, std::chrono::milliseconds timeout) {
         std::unique_lock lock(mutex_);
         if (!ready_.wait_for(lock, timeout, [&] { return closed_ || !items_.empty(); }) ||
@@ -60,4 +57,4 @@ private:
     bool closed_ = false;
 };
 
-}  // namespace hft::telemetry
+}

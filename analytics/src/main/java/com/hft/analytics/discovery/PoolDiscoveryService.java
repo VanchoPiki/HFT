@@ -20,11 +20,6 @@ import com.hft.analytics.chain.ChainClient.Call;
 import com.hft.analytics.chain.ChainProperties;
 import com.hft.analytics.chain.UniswapAbi;
 
-/**
- * Finds every Uniswap V3 pool between the configured tokens: asks the factory for each
- * token pair and fee tier, then reads each pool's state. Not latency sensitive, so it lives
- * here rather than in the bot.
- */
 @Service
 public class PoolDiscoveryService {
 
@@ -53,7 +48,6 @@ public class PoolDiscoveryService {
 		Map<String, String> addressOf = new HashMap<>();
 		symbols.forEach(s -> addressOf.put(s, properties.tokens().get(s).toLowerCase(Locale.ROOT)));
 
-		// 1. factory.getPool for every unordered token pair and fee tier
 		List<Call> calls = new ArrayList<>();
 		List<Candidate> asked = new ArrayList<>();
 		for (int i = 0; i < symbols.size(); i++) {
@@ -78,7 +72,6 @@ public class PoolDiscoveryService {
 			}
 		}
 
-		// 2. decimals of every token
 		List<Call> decimalCalls = symbols.stream()
 			.map(s -> new Call(addressOf.get(s), UniswapAbi.encode(UniswapAbi.decimals())))
 			.toList();
@@ -89,7 +82,6 @@ public class PoolDiscoveryService {
 			decimals.put(symbols.get(k), out.isEmpty() ? 18 : UniswapAbi.uint(out, 0).intValue());
 		}
 
-		// 3. tickSpacing, liquidity and slot0 of every pool
 		List<Call> stateCalls = new ArrayList<>();
 		for (Candidate c : found) {
 			stateCalls.add(new Call(c.address(), UniswapAbi.encode(UniswapAbi.tickSpacing())));
@@ -108,7 +100,6 @@ public class PoolDiscoveryService {
 			if (spacing.isEmpty() || liquidity.isEmpty() || slot0.isEmpty()) {
 				continue;
 			}
-			// Uniswap orders a pool's tokens by address.
 			boolean aIsToken0 = addressOf.get(c.symbolA()).compareTo(addressOf.get(c.symbolB())) < 0;
 			String s0 = aIsToken0 ? c.symbolA() : c.symbolB();
 			String s1 = aIsToken0 ? c.symbolB() : c.symbolA();

@@ -10,8 +10,6 @@
 namespace hft::eth {
 namespace {
 
-// Expected values come from `cast keccak`, `cast sig` and `cast sig-event`.
-
 TEST(KeccakTest, EmptyInput) {
     EXPECT_EQ(to_hex(keccak256("")),
               "0xc5d2460186f7233c927e7db2dcc703c0e500b653ca82273b7bfad8045d85a470");
@@ -23,7 +21,6 @@ TEST(KeccakTest, ShortInput) {
 }
 
 TEST(KeccakTest, ExactlyOneBlock) {
-    // 136 bytes = the rate: padding goes into a second block.
     EXPECT_EQ(to_hex(keccak256(std::string(136, 'b'))),
               "0x121b76d0b19f3c2c7632310b92c54cddd59d16a6b5aafe84696426f10e5733bf");
 }
@@ -46,5 +43,5 @@ TEST(KeccakTest, EventTopic) {
               "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67");
 }
 
-}  // namespace
-}  // namespace hft::eth
+}
+}

@@ -7,8 +7,6 @@
 namespace hft::eth::abi {
 namespace {
 
-// Expected encodings come from `cast abi-encode` / `cast calldata`.
-
 const Address kWeth = *Address::from_hex("0x82aF49447D8a07e3bd95BD0d56f35241523fBab1");
 const Address kUsdc = *Address::from_hex("0xaf88d065e77c8cC2239327C5EDb3A432268e5831");
 
@@ -72,7 +70,6 @@ TEST(AbiReaderTest, ReadsDynamicBytes) {
     EXPECT_EQ(r.read_uint(), 2);
 }
 
-// The shape TickLens.getPopulatedTicksInWord returns: (int24 tick, int128 net, uint128 gross)[]
 TEST(AbiReaderTest, ReadsArrayOfStaticTuples) {
     const auto data = bytes(
         "0x0000000000000000000000000000000000000000000000000000000000000020"
@@ -100,5 +97,5 @@ TEST(AbiReaderTest, RejectsBadOffsets) {
     EXPECT_THROW(r.read_dynamic(), Error);
 }
 
-}  // namespace
-}  // namespace hft::eth::abi
+}
+}

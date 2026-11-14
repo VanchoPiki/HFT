@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 
 public interface PoolSnapshotRepository extends JpaRepository<PoolSnapshot, Long> {
 
-	/** The most recent snapshot of every pool. */
 	@Query(value = "select distinct on (pool) * from pool_snapshots order by pool, ts desc, id desc",
 			nativeQuery = true)
 	List<PoolSnapshot> findLatestPerPool();

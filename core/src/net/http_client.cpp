@@ -20,7 +20,7 @@ namespace http = beast::http;
 namespace ssl = asio::ssl;
 using tcp = asio::ip::tcp;
 
-}  // namespace
+}
 
 HttpStatusError::HttpStatusError(int s, const std::string& body)
     : std::runtime_error("http status " + std::to_string(s) + ": " + body.substr(0, 300)),
@@ -108,8 +108,6 @@ struct HttpClient::Impl {
     }
 
     std::string send(http::verb verb, std::string_view target, std::string_view body) {
-        // A kept-alive connection may have been closed by the server in the meantime:
-        // retry once on a fresh connection.
         for (int attempt = 0;; ++attempt) {
             const bool reused = connected();
             try {
@@ -140,4 +138,4 @@ std::string HttpClient::get(std::string_view target) {
     return impl_->send(http::verb::get, target, {});
 }
 
-}  // namespace hft::net
+}

@@ -7,7 +7,6 @@ namespace {
 
 constexpr char kDigits[] = "0123456789abcdef";
 
-// Maps an ASCII character to its hex value, or -1 if it is not a hex digit.
 constexpr std::array<std::int8_t, 256> make_decode_table() {
     std::array<std::int8_t, 256> table{};
     table.fill(-1);
@@ -30,7 +29,7 @@ std::string_view strip_prefix(std::string_view hex) {
     return hex;
 }
 
-}  // namespace
+}
 
 std::string to_hex(std::span<const std::uint8_t> bytes) {
     std::string out(2 + bytes.size() * 2, '\0');
@@ -72,4 +71,4 @@ std::optional<std::vector<std::uint8_t>> from_hex(std::string_view hex) {
     return out;
 }
 
-}  // namespace hft::eth
+}

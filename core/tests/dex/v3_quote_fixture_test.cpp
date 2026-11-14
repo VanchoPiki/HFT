@@ -10,8 +10,6 @@ namespace {
 
 eth::u256 u(simdjson::dom::element e) { return eth::u256(std::string(std::string_view(e))); }
 
-// Pools snapshotted from Arbitrum together with QuoterV2's answers at the same block
-// (written by `hft_verify --dump`). Local quotes must reproduce them to the wei.
 TEST(V3QuoteFixtureTest, MatchesQuoterV2ToTheWei) {
     simdjson::dom::parser parser;
     const simdjson::padded_string json =
@@ -48,5 +46,5 @@ TEST(V3QuoteFixtureTest, MatchesQuoterV2ToTheWei) {
     EXPECT_GT(crossed, 0) << "fixture should exercise tick crossings";
 }
 
-}  // namespace
-}  // namespace hft::dex
+}
+}

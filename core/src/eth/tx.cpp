@@ -17,7 +17,7 @@ rlp::List unsigned_fields(const Eip1559Tx& tx) {
         .add_bytes(tx.to.bytes)
         .add_uint(tx.value)
         .add_bytes(tx.data)
-        .add_list(rlp::List{});  // access list
+        .add_list(rlp::List{});
     return fields;
 }
 
@@ -28,7 +28,7 @@ std::vector<std::uint8_t> typed(const rlp::List& fields) {
     return out;
 }
 
-}  // namespace
+}
 
 Hash signing_hash(const Eip1559Tx& tx) { return keccak256(typed(unsigned_fields(tx))); }
 
@@ -42,4 +42,4 @@ std::vector<std::uint8_t> sign_transaction(const Eip1559Tx& tx, const Signer& si
     return encode_signed(tx, signer.sign(signing_hash(tx)));
 }
 
-}  // namespace hft::eth
+}

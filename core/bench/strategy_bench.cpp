@@ -18,8 +18,6 @@ u256 sqrt_price_x96(double price) {
     return u256(static_cast<std::uint64_t>(std::sqrt(price) * 0x1p62)) << 34;
 }
 
-// A pool with 100 stacked positions around the price (one every 60 ticks), so a large
-// swap has to cross many initialized ticks like on a real WETH/USDC pool.
 dex::V3Pool& add_pool(dex::Market& m, std::uint8_t n, std::uint32_t fee, double price) {
     hft::eth::Address address;
     address.bytes[19] = n;
@@ -77,7 +75,7 @@ BENCHMARK(BM_QuoteWithinOneTick)->Unit(benchmark::kMicrosecond);
 
 void BM_QuoteCrossingTicks(benchmark::State& state) {
     Fixture f;
-    const u256 amount("250000000000000000000");  // moves the price ~12%
+    const u256 amount("250000000000000000000");
     int crossed = 0;
     for (auto _ : state) {
         auto q = f.cheap->quote_exact_input(true, amount);
@@ -92,7 +90,6 @@ void BM_QuoteCrossingTicks(benchmark::State& state) {
 }
 BENCHMARK(BM_QuoteCrossingTicks)->Unit(benchmark::kMicrosecond);
 
-// The hot-path decision: optimal size + exact profit of the best cycle after a pool update.
 void BM_OnPoolChanged(benchmark::State& state) {
     Fixture f;
     hft::strategy::TwoPoolArb arb(f.market, kToken0, {.min_profit_weth = 0});
@@ -102,4 +99,4 @@ void BM_OnPoolChanged(benchmark::State& state) {
 }
 BENCHMARK(BM_OnPoolChanged)->Unit(benchmark::kMicrosecond);
 
-}  // namespace
+}

@@ -68,4 +68,4 @@ std::string fee_label(std::uint32_t fee) {
     return std::format("{:g}%", static_cast<double>(fee) / 10000.0);
 }
 
-}  // namespace hft::dex
+}

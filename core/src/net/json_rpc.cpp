@@ -9,12 +9,9 @@
 namespace hft::net {
 namespace {
 
-// Free provider plans meter compute units per second (Alchemy: ~500 CU/s, 26 per
-// eth_call), so a batch of 20 calls is already over budget.
 constexpr std::size_t kBatchChunk = 10;
 constexpr int kRateLimitRounds = 5;
 
-// Throttling reported inside a JSON-RPC response (HTTP 200), per batch item.
 bool rate_limited(const RpcError& e) {
     const std::string_view m = e.what();
     return e.code == 429 || e.code == -32005 || m.find("capacity") != m.npos ||
@@ -63,7 +60,7 @@ std::uint64_t as_u64(simdjson::dom::element result) {
     return *v;
 }
 
-}  // namespace
+}
 
 std::string block_tag(std::uint64_t number) { return eth::to_quantity(number); }
 
@@ -72,7 +69,7 @@ JsonRpcClient::JsonRpcClient(const std::string& url, int max_attempts,
     : http_(url, timeout), max_attempts_(std::max(1, max_attempts)) {}
 
 std::string JsonRpcClient::post(const std::string& body) {
-    constexpr int kRateLimitRetries = 5;  // 1 + 2 + 4 + 8 + 16 s: public endpoints throttle hard
+    constexpr int kRateLimitRetries = 5;
     int rate_limited = 0;
     for (int attempt = 1;; ++attempt) {
         try {
@@ -80,7 +77,7 @@ std::string JsonRpcClient::post(const std::string& body) {
         } catch (const HttpStatusError& e) {
             if (e.status == 429 && max_attempts_ > 1 && rate_limited < kRateLimitRetries) {
                 std::this_thread::sleep_for(std::chrono::seconds(1) * (1 << rate_limited++));
-                --attempt;  // waiting out a rate limit is not a failed attempt
+                --attempt;
                 continue;
             }
             if (e.status < 500 || attempt >= max_attempts_) {
@@ -155,7 +152,7 @@ std::vector<CallResult> JsonRpcClient::call_batch(std::span<const CallRequest> c
         pending[i] = i;
     }
     for (int round = 0; !pending.empty(); ++round) {
-        std::vector<std::size_t> throttled;  // retried after a pause, everything else is final
+        std::vector<std::size_t> throttled;
         for (std::size_t start = 0; start < pending.size(); start += kBatchChunk) {
             const std::size_t end = std::min(pending.size(), start + kBatchChunk);
             std::string body = "[";
@@ -177,7 +174,7 @@ std::vector<CallResult> JsonRpcClient::call_batch(std::span<const CallRequest> c
             }
             simdjson::dom::array items;
             if (doc.get(items) != simdjson::SUCCESS) {
-                throw_if_rpc_error(doc);  // the whole batch was rejected
+                throw_if_rpc_error(doc);
                 throw RpcError(-1, "rpc: batch response is not an array");
             }
             for (simdjson::dom::element item : items) {
@@ -248,4 +245,4 @@ std::optional<Receipt> JsonRpcClient::get_transaction_receipt(const eth::Hash& t
                });
 }
 
-}  // namespace hft::net
+}

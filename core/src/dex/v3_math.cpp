@@ -10,7 +10,6 @@ namespace {
 const u256 kMaxU256 = ~u256(0);
 const u256 kMaxU160 = (u256(1) << 160) - 1;
 
-// TickMath.getSqrtRatioAtTick: 1/sqrt(1.0001)^(2^i) in Q128.128 for each bit i of |tick|.
 const u256 kTickFactors[20] = {
     u256("0xfffcb933bd6fad37aa2d162d1a594001"), u256("0xfff97272373d413259a46990580e213a"),
     u256("0xfff2e50f5f656932ef12357cf3c7fdcc"), u256("0xffe5caca7e10e4e61c3624eaa0941cd0"),
@@ -38,13 +37,12 @@ u256 to_u160(const u256& v) {
     return v;
 }
 
-// SqrtPriceMath.getNextSqrtPriceFromAmount0RoundingUp with add = true.
 u256 next_from_amount0_up(const u256& sqrt_p, const u256& liquidity, const u256& amount) {
     if (amount == 0) {
         return sqrt_p;
     }
     const u256 numerator1 = liquidity << 96;
-    const u256 product = amount * sqrt_p;  // wraps like unchecked EVM math
+    const u256 product = amount * sqrt_p;
     if (product / amount == sqrt_p) {
         const u256 denominator = numerator1 + product;
         if (denominator >= numerator1) {
@@ -58,14 +56,13 @@ u256 next_from_amount0_up(const u256& sqrt_p, const u256& liquidity, const u256&
     return div_rounding_up(numerator1, sum);
 }
 
-// SqrtPriceMath.getNextSqrtPriceFromAmount1RoundingDown with add = true.
 u256 next_from_amount1_down(const u256& sqrt_p, const u256& liquidity, const u256& amount) {
     const u256 quotient =
         amount <= kMaxU160 ? (amount << 96) / liquidity : mul_div(amount, kQ96, liquidity);
     return to_u160(sqrt_p + quotient);
 }
 
-}  // namespace
+}
 
 const u256 kMinSqrtRatio("4295128739");
 const u256 kMaxSqrtRatio("1461446703485210103287273052203988822378723970342");
@@ -111,7 +108,6 @@ u256 sqrt_ratio_at_tick(int tick) {
     if (tick > 0) {
         ratio = kMaxU256 / ratio;
     }
-    // Q128.128 -> Q64.96, rounding up so that tick_at_sqrt_ratio stays consistent.
     return (ratio >> 32) + ((ratio & 0xffffffff) == 0 ? 0 : 1);
 }
 
@@ -119,8 +115,6 @@ int tick_at_sqrt_ratio(const u256& sqrt_price_x96) {
     if (sqrt_price_x96 < kMinSqrtRatio || sqrt_price_x96 >= kMaxSqrtRatio) {
         throw MathError("v3: sqrt price out of range");
     }
-    // The floating-point estimate is within a tick of the answer; exact integer
-    // comparisons then pin down the greatest tick with sqrt_ratio_at_tick(tick) <= price.
     const double sqrt_p = static_cast<double>(sqrt_price_x96) / 0x1p96;
     int tick = static_cast<int>(std::floor(2.0 * std::log(sqrt_p) / std::log(1.0001)));
     tick = std::clamp(tick, kMinTick, kMaxTick - 1);
@@ -201,11 +195,11 @@ SwapStep compute_swap_step(const u256& sqrt_current, const u256& sqrt_target,
     }
 
     if (!reached_target) {
-        step.fee_amount = amount_remaining - step.amount_in;  // the remainder is all fee
+        step.fee_amount = amount_remaining - step.amount_in;
     } else {
         step.fee_amount = mul_div_rounding_up(step.amount_in, fee_pips, 1'000'000 - fee_pips);
     }
     return step;
 }
 
-}  // namespace hft::dex::v3
+}

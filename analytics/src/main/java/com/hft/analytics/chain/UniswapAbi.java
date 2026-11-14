@@ -20,10 +20,8 @@ import org.web3j.abi.datatypes.generated.Uint160;
 import org.web3j.abi.datatypes.generated.Uint24;
 import org.web3j.abi.datatypes.generated.Uint8;
 
-/** The Uniswap V3 and ERC-20 calls the research tools make, encoded with web3j's ABI types. */
 public final class UniswapAbi {
 
-	/** Swap(address indexed, address indexed, int256, int256, uint160, uint128, int24). */
 	public static final Event SWAP = new Event("Swap",
 			List.of(new TypeReference<Address>(true) {
 			}, new TypeReference<Address>(true) {
@@ -81,7 +79,6 @@ public final class UniswapAbi {
 		return FunctionEncoder.encode(function);
 	}
 
-	/** Decoded outputs of a call, or an empty list for reverted / empty results. */
 	@SuppressWarnings("rawtypes")
 	public static List<Type> decode(Function function, String hex) {
 		if (hex == null || hex.equals("0x")) {

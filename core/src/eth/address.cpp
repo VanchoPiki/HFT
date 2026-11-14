@@ -34,4 +34,4 @@ bool Address::is_zero() const {
     return std::all_of(bytes.begin(), bytes.end(), [](std::uint8_t b) { return b == 0; });
 }
 
-}  // namespace hft::eth
+}

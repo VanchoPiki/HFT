@@ -6,9 +6,9 @@
 namespace hft::telemetry {
 namespace {
 
-std::int64_t g_run_id = 0;  // set once at startup, before any event is built
+std::int64_t g_run_id = 0;
 
-}  // namespace
+}
 
 std::int64_t now_ms() {
     return std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -56,4 +56,4 @@ std::string heartbeat_event(std::uint64_t chain_id, std::uint64_t block, std::si
         now_ms(), g_run_id, chain_id, block, pools, mode, dropped_events);
 }
 
-}  // namespace hft::telemetry
+}

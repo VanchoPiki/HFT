@@ -27,12 +27,12 @@ using TlsWs = websocket::stream<beast::ssl_stream<beast::tcp_stream>>;
 websocket::stream_base::timeout client_timeouts() {
     websocket::stream_base::timeout t{};
     t.handshake_timeout = std::chrono::seconds(30);
-    t.idle_timeout = std::chrono::seconds(20);  // ping after 10s of silence, fail after 20s
+    t.idle_timeout = std::chrono::seconds(20);
     t.keep_alive_pings = true;
     return t;
 }
 
-}  // namespace
+}
 
 struct WsClient::Impl {
     explicit Impl(const std::string& u) : url(Url::parse(u)) {
@@ -49,7 +49,7 @@ struct WsClient::Impl {
 
     template <typename Ws>
     asio::awaitable<void> handshake(Ws& ws) {
-        beast::get_lowest_layer(ws).expires_never();  // websocket timeouts take over
+        beast::get_lowest_layer(ws).expires_never();
         ws.set_option(client_timeouts());
         ws.set_option(websocket::stream_base::decorator(
             [](websocket::request_type& req) { req.set(beast::http::field::user_agent, "hft-bot"); }));
@@ -111,7 +111,6 @@ struct WsClient::Impl {
         }
     }
 
-    // One background read at a time; its result is parked here until read_for() takes it.
     bool reading = false;
     bool read_ready = false;
     std::exception_ptr read_error;
@@ -170,4 +169,4 @@ std::optional<std::string> WsClient::read_for(std::chrono::microseconds timeout)
     return impl_->read_for(timeout);
 }
 
-}  // namespace hft::net
+}

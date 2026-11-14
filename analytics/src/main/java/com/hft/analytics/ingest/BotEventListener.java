@@ -9,10 +9,6 @@ import org.zeromq.SocketType;
 import org.zeromq.ZContext;
 import org.zeromq.ZMQ;
 
-/**
- * Subscribes to the bot's ZeroMQ PUB socket on a background thread. The bot never waits
- * for us: if this service is down or slow, events are simply lost on the bot side.
- */
 @Component
 public class BotEventListener implements SmartLifecycle {
 
@@ -48,7 +44,7 @@ public class BotEventListener implements SmartLifecycle {
 	private void loop() {
 		try (ZContext context = new ZContext(); ZMQ.Socket socket = context.createSocket(SocketType.SUB)) {
 			socket.subscribe(ZMQ.SUBSCRIPTION_ALL);
-			socket.setReceiveTimeOut(500); // wake up regularly to notice stop()
+			socket.setReceiveTimeOut(500);
 			socket.connect(endpoint);
 			log.info("listening for bot events on {}", endpoint);
 			while (running) {

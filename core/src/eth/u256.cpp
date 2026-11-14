@@ -26,7 +26,7 @@ void store_be64(std::uint8_t* p, std::uint64_t v) {
     }
 }
 
-}  // namespace
+}
 
 u256 u256_from_be(std::span<const std::uint8_t> bytes) {
     if (bytes.size() > 32) {
@@ -95,7 +95,7 @@ std::string to_quantity(const u256& value) {
 
 i256 to_signed(const u256& bits) {
     if (boost::multiprecision::bit_test(bits, 255)) {
-        const u256 magnitude = ~bits + 1;  // 2^255 for the minimum value, which still fits
+        const u256 magnitude = ~bits + 1;
         return -static_cast<i256>(magnitude);
     }
     return static_cast<i256>(bits);
@@ -109,4 +109,4 @@ u256 from_signed(const i256& value) {
     return static_cast<u256>(value);
 }
 
-}  // namespace hft::eth
+}

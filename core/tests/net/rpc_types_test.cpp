@@ -7,7 +7,6 @@
 namespace hft::net {
 namespace {
 
-// A real Swap log of the WETH/USDC 0.05% pool on Arbitrum (eth_getLogs).
 constexpr std::string_view kSwapLog = R"({
   "address": "0xc6962004f452be9203591991d15f6b388e09e8d0",
   "topics": ["0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67",
@@ -65,5 +64,5 @@ TEST(RpcTypesTest, ErrorObjectThrows) {
     }
 }
 
-}  // namespace
-}  // namespace hft::net
+}
+}

@@ -1,9 +1,5 @@
 #pragma once
 
-// Internal helper: runs one Asio coroutine to completion on the calling thread.
-// Async operations are used (instead of Beast's blocking API) because only they honour
-// beast::tcp_stream timeouts and WebSocket keep-alive pings.
-
 #include <boost/asio/awaitable.hpp>
 #include <boost/asio/co_spawn.hpp>
 #include <boost/asio/io_context.hpp>
@@ -25,7 +21,6 @@ T run_until_done(boost::asio::io_context& ioc, boost::asio::awaitable<T> task) {
         }
         done = true;
     });
-    // run_one instead of run: background timers (e.g. WebSocket pings) must not block us.
     while (!done) {
         if (ioc.run_one() == 0) {
             ioc.restart();
@@ -54,4 +49,4 @@ inline void run_until_done(boost::asio::io_context& ioc, boost::asio::awaitable<
     }
 }
 
-}  // namespace hft::net::detail
+}

@@ -65,7 +65,7 @@ TEST(AbiJsonTest, CustomErrorsFromTheExecutorAbi) {
     const auto executor = Contract::load_file(std::string(HFT_ABI_DIR) + "/ArbExecutor.json");
     const auto& execute = executor.function("execute");
     EXPECT_EQ(execute.signature, "execute(address,address,address,address,uint256,uint256)");
-    EXPECT_EQ(to_hex(execute.selector), "0x7264e8bf");  // `cast sig`
+    EXPECT_EQ(to_hex(execute.selector), "0x7264e8bf");
     const auto revert = *from_hex("0x653406a4" + std::string(128, '0'));
     EXPECT_EQ(executor.error_name(revert), "InsufficientProfit");
     EXPECT_EQ(executor.error_name(*from_hex("0xdeadbeef")), "");
@@ -78,5 +78,5 @@ TEST(AbiJsonTest, MissingAndOverloadedNamesThrow) {
     EXPECT_THROW(contract.event("Mint"), Error);
 }
 
-}  // namespace
-}  // namespace hft::eth::abi
+}
+}

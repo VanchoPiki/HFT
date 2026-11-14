@@ -65,8 +65,6 @@ void Bot::print_snapshot() const {
     }
 }
 
-// One line per pair: price in each pool and the best two-pool edge after fees.
-// edge = spread between two pools minus both fees (in bps); > 0 means a possible arbitrage.
 void Bot::print_group(const std::vector<dex::V3Pool*>& group, std::uint64_t block) const {
     std::string line = std::format("#{} {:<12}", block, market_.pair_name(*group.front()));
     double best_edge = -std::numeric_limits<double>::infinity();
@@ -116,7 +114,7 @@ void Bot::run(const std::atomic<bool>& stop) {
 void Bot::on_connected() {
     pending_.clear();
     if (first_connect_ && bootstrapped_) {
-        first_connect_ = false;  // state was just loaded by bootstrap()
+        first_connect_ = false;
         return;
     }
     resync();
@@ -134,7 +132,7 @@ void Bot::on_log(const net::Log& log) {
         return;
     }
     if (log.tx_hash != pending_tx_ || log.block_number != pending_block_) {
-        evaluate_pending();  // the previous transaction is complete
+        evaluate_pending();
         pending_tx_ = log.tx_hash;
         pending_block_ = log.block_number;
     }
@@ -149,7 +147,6 @@ void Bot::on_log(const net::Log& log) {
 void Bot::on_idle() { evaluate_pending(); }
 
 void Bot::evaluate_pending() {
-    // The hot path: best cycle through any pool the last transaction touched.
     std::optional<strategy::Opportunity> best;
     for (const dex::V3Pool* pool : pending_) {
         auto opp = strategy_.on_pool_changed(*pool, pending_block_);
@@ -165,7 +162,6 @@ void Bot::evaluate_pending() {
 
 void Bot::handle(const strategy::Opportunity& opp) {
     if (executor_) {
-        // The contract must keep at least this much, or the whole transaction reverts.
         const auto share = static_cast<std::uint64_t>(cfg_.execution.min_profit_share * 1000);
         const eth::u256 gross = static_cast<eth::u256>(opp.gross_profit);
         const exec::Plan plan{.opportunity_id = opp.id,
@@ -198,10 +194,10 @@ void Bot::handle(const strategy::Opportunity& opp) {
 
 void Bot::refresh_gas_price(const net::BlockHeader& header) {
     if (header.base_fee > 0) {
-        strategy_.set_gas_price(header.base_fee);  // WebSocket heads carry it for free
+        strategy_.set_gas_price(header.base_fee);
         return;
     }
-    constexpr std::uint64_t kEveryBlocks = 240;  // ~1 minute on Arbitrum
+    constexpr std::uint64_t kEveryBlocks = 240;
     if (header.number >= gas_checked_block_ + kEveryBlocks) {
         gas_checked_block_ = header.number;
         try {
@@ -215,7 +211,7 @@ void Bot::refresh_gas_price(const net::BlockHeader& header) {
 void Bot::on_block(const net::BlockHeader& header) {
     evaluate_pending();
     refresh_gas_price(header);
-    constexpr std::uint64_t kHeartbeatBlocks = 40;  // ~10 s on Arbitrum
+    constexpr std::uint64_t kHeartbeatBlocks = 40;
     if (header.number >= heartbeat_block_ + kHeartbeatBlocks) {
         heartbeat_block_ = header.number;
         publisher_.publish(telemetry::heartbeat_event(cfg_.chain_id, header.number,
@@ -241,4 +237,4 @@ void Bot::on_block(const net::BlockHeader& header) {
     changed_.clear();
 }
 
-}  // namespace hft::app
+}

@@ -14,11 +14,10 @@
 
 namespace hft::net {
 
-// JSON-RPC error object, or a malformed response (code -1).
 struct RpcError : std::runtime_error {
     RpcError(int code, const std::string& message, std::string data = {});
     int code;
-    std::string data;  // e.g. revert data of a failed eth_call, hex
+    std::string data;
 };
 
 struct Log {
@@ -28,7 +27,7 @@ struct Log {
     std::uint64_t block_number = 0;
     std::uint64_t log_index = 0;
     eth::Hash tx_hash{};
-    bool removed = false;  // set on chain reorgs
+    bool removed = false;
 };
 
 struct BlockHeader {
@@ -48,7 +47,7 @@ struct Receipt {
 
 struct LogFilter {
     std::vector<eth::Address> addresses;
-    std::vector<eth::Hash> topic0;  // match any of these event signatures
+    std::vector<eth::Hash> topic0;
     std::optional<std::uint64_t> from_block;
     std::optional<std::uint64_t> to_block;
 
@@ -59,7 +58,6 @@ Log parse_log(simdjson::dom::element json);
 BlockHeader parse_block_header(simdjson::dom::element json);
 Receipt parse_receipt(simdjson::dom::element json);
 
-// Throws RpcError if a JSON-RPC response object carries an "error".
 void throw_if_rpc_error(simdjson::dom::element response);
 
-}  // namespace hft::net
+}

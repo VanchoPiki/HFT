@@ -44,4 +44,4 @@ void sync_market(const Config& cfg, net::JsonRpcClient& rpc, const dex::UniswapV
     loader.load_ticks(cfg.tick_lens, pools, cfg.tick_words_each_side, block);
 }
 
-}  // namespace hft::app
+}

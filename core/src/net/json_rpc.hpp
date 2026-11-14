@@ -33,9 +33,6 @@ struct CallResult {
     std::string error;
 };
 
-// Ethereum JSON-RPC over HTTP. Retries transport errors, HTTP 429 and 5xx with a short
-// backoff (max_attempts = 1 disables retries, e.g. for sending transactions).
-// Not thread-safe: one client per thread.
 class JsonRpcClient {
 public:
     explicit JsonRpcClient(const std::string& url, int max_attempts = 3,
@@ -50,7 +47,6 @@ public:
     BlockHeader get_block_header(std::string_view block = "latest");
 
     std::vector<std::uint8_t> call(const TxCall& tx, std::string_view block = "latest");
-    // One HTTP request for many eth_calls (JSON-RPC batch); results keep the input order.
     std::vector<CallResult> call_batch(std::span<const CallRequest> calls,
                                        std::string_view block = "latest");
     std::uint64_t estimate_gas(const TxCall& tx);
@@ -59,7 +55,6 @@ public:
     eth::Hash send_raw_transaction(std::span<const std::uint8_t> raw_tx);
     std::optional<Receipt> get_transaction_receipt(const eth::Hash& tx_hash);
 
-    // Any method; returns the "result" value as JSON text.
     std::string request(std::string_view method, std::string_view params_json);
 
 private:
@@ -73,7 +68,6 @@ private:
     simdjson::dom::parser parser_;
 };
 
-// Formats a block number as a JSON-RPC block tag.
 std::string block_tag(std::uint64_t number);
 
-}  // namespace hft::net
+}

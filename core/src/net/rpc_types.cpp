@@ -24,7 +24,7 @@ std::uint64_t quantity_field(simdjson::dom::element json, const char* key) {
 std::optional<std::string_view> optional_field(simdjson::dom::element json, const char* key) {
     std::string_view value;
     if (json[key].get(value) != simdjson::SUCCESS) {
-        return std::nullopt;  // missing or null (e.g. blockNumber of a pending log)
+        return std::nullopt;
     }
     return value;
 }
@@ -37,7 +37,7 @@ eth::Hash hash_from(std::string_view hex) {
     return h;
 }
 
-}  // namespace
+}
 
 RpcError::RpcError(int c, const std::string& message, std::string d)
     : std::runtime_error(message), code(c), data(std::move(d)) {}
@@ -136,9 +136,9 @@ void throw_if_rpc_error(simdjson::dom::element response) {
     }
     std::string_view data;
     if (error["data"].get(data) != simdjson::SUCCESS) {
-        data = {};  // revert data is optional
+        data = {};
     }
     throw RpcError(static_cast<int>(code), std::string(message), std::string(data));
 }
 
-}  // namespace hft::net
+}

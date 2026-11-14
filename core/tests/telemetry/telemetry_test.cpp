@@ -55,7 +55,6 @@ TEST(TelemetryPublisherTest, DeliversToASubscriber) {
     sub.set(zmq::sockopt::rcvtimeo, 2000);
     sub.connect(endpoint);
 
-    // PUB/SUB drops messages until the subscription has propagated: retry a few times.
     zmq::message_t message;
     bool received = false;
     for (int attempt = 0; attempt < 20 && !received; ++attempt) {
@@ -83,10 +82,10 @@ TEST(BoundedQueueTest, DropsWhenFullInsteadOfBlocking) {
     EXPECT_TRUE(q.pop(v, std::chrono::milliseconds(1)));
     EXPECT_EQ(v, 1);
     q.close();
-    EXPECT_TRUE(q.pop(v, std::chrono::milliseconds(1)));  // drains what is left
+    EXPECT_TRUE(q.pop(v, std::chrono::milliseconds(1)));
     EXPECT_FALSE(q.pop(v, std::chrono::milliseconds(1)));
     EXPECT_TRUE(q.closed_and_empty());
 }
 
-}  // namespace
-}  // namespace hft::telemetry
+}
+}

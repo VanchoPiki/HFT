@@ -14,7 +14,7 @@ std::mutex g_mutex;
 
 constexpr const char* kNames[] = {"DEBUG", "INFO ", "WARN ", "ERROR"};
 
-}  // namespace
+}
 
 void set_level(Level level) { g_level = level; }
 
@@ -34,4 +34,4 @@ void write(Level level, std::string_view message) {
                  static_cast<int>(message.size()), message.data());
 }
 
-}  // namespace hft::log
+}

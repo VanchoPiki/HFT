@@ -23,7 +23,7 @@ void usage() {
         "RPC endpoints come from the config or ARBITRUM_RPC_URL / ARBITRUM_WS_URL (.env).");
 }
 
-}  // namespace
+}
 
 int main(int argc, char** argv) {
     std::string config_path = "config/arbitrum.json";

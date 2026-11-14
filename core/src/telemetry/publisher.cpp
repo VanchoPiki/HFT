@@ -34,7 +34,7 @@ void Publisher::run() {
         zmq::context_t context(1);
         zmq::socket_t socket(context, zmq::socket_type::pub);
         socket.set(zmq::sockopt::sndhwm, 100000);
-        socket.set(zmq::sockopt::linger, 500);  // flush on shutdown, but do not hang
+        socket.set(zmq::sockopt::linger, 500);
         socket.bind(endpoint_);
         log::info("telemetry: publishing on {}", endpoint_);
 
@@ -54,4 +54,4 @@ void Publisher::run() {
     }
 }
 
-}  // namespace hft::telemetry
+}

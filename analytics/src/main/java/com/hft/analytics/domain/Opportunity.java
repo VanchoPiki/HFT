@@ -10,10 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/**
- * An arbitrage cycle the bot found (event {@code opportunity}): swap {@code amountIn} of
- * {@code tokenIn} in pool A, then back in pool B. Raw amounts are in the token's smallest unit.
- */
 @Entity
 @Table(name = "opportunities")
 public class Opportunity {

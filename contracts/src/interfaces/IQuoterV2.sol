@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// Uniswap V3 QuoterV2. Not a view function on-chain (it reverts internally), so it is
-/// only ever used through eth_call.
 interface IQuoterV2 {
     struct QuoteExactInputSingleParams {
         address tokenIn;

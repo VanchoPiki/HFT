@@ -10,12 +10,10 @@
 
 namespace hft::dex {
 
-// Reads pools from the chain with batched eth_calls. Not used on the hot path.
 class PoolLoader {
 public:
     PoolLoader(net::JsonRpcClient& rpc, const UniswapV3Abi& abi) : rpc_(rpc), abi_(abi) {}
 
-    // factory.getPool for every pair and fee tier; returns pools that exist.
     std::vector<eth::Address> discover(const eth::Address& factory,
                                        std::span<const std::pair<eth::Address, eth::Address>> pairs,
                                        std::span<const std::uint32_t> fee_tiers);
@@ -23,11 +21,8 @@ public:
     std::vector<PoolInfo> load_info(std::span<const eth::Address> pools);
     void load_decimals(std::span<Token> tokens);
 
-    // slot0 + liquidity of every pool as of `block`.
     void load_state(std::span<V3Pool* const> pools, std::uint64_t block);
 
-    // Initialized ticks of `words_each_side` tick-bitmap words around the current tick
-    // (plus the current word) via TickLens.getPopulatedTicksInWord.
     void load_ticks(const eth::Address& tick_lens, std::span<V3Pool* const> pools,
                     int words_each_side, std::uint64_t block);
 
@@ -38,4 +33,4 @@ private:
     const UniswapV3Abi& abi_;
 };
 
-}  // namespace hft::dex
+}

@@ -46,4 +46,4 @@ Url Url::parse(std::string_view text) {
     return url;
 }
 
-}  // namespace hft::net
+}

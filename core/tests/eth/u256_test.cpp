@@ -57,7 +57,6 @@ TEST(U256Test, FormatsQuantities) {
 }
 
 TEST(U256Test, TwosComplement) {
-    // -887272 (MIN_TICK) as int24 ABI word, from `cast abi-encode "f(int24)" -- -887272`.
     const auto bits =
         *parse_quantity("0xfffffffffffffffffffffffffffffffffffffffffffffffffffffffffff27618");
     EXPECT_EQ(to_signed(bits), i256{-887272});
@@ -72,5 +71,5 @@ TEST(U256Test, TwosComplement) {
     EXPECT_LT(to_signed(min_bits), 0);
 }
 
-}  // namespace
-}  // namespace hft::eth
+}
+}

@@ -24,7 +24,6 @@ const net::CallResult& checked(const net::CallResult& r, const eth::Address& tar
     return r;
 }
 
-// Tick-bitmap word of a tick, as in TickBitmap.position (compressed tick >> 8, rounded down).
 int word_of(int tick, int spacing) {
     int compressed = tick / spacing;
     if (tick < 0 && tick % spacing != 0) {
@@ -33,7 +32,7 @@ int word_of(int tick, int spacing) {
     return compressed >> 8;
 }
 
-}  // namespace
+}
 
 std::vector<net::CallResult> PoolLoader::run(std::span<const net::CallRequest> calls,
                                              std::uint64_t block) {
@@ -131,7 +130,6 @@ void PoolLoader::load_ticks(const eth::Address& tick_lens, std::span<V3Pool* con
             calls.push_back(
                 {tick_lens, Encoder(selector).add_address(pool->info().address).add_int(w).finish()});
         }
-        // Each word covers 256 * spacing ticks.
         pool->set_known_tick_range((center - words_each_side) * 256 * spacing,
                                    (center + words_each_side + 1) * 256 * spacing - 1);
     }
@@ -152,4 +150,4 @@ void PoolLoader::load_ticks(const eth::Address& tick_lens, std::span<V3Pool* con
     log::debug("loader: {} initialized ticks in {} words", total, requests.size());
 }
 
-}  // namespace hft::dex
+}

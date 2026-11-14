@@ -3,8 +3,6 @@
 namespace hft::eth::rlp {
 namespace {
 
-// Short form: base + length (length <= 55). Long form: (base + 55 + n) followed by the
-// length as n big-endian bytes. Strings use base 0x80, lists use base 0xc0.
 void append_header(std::vector<std::uint8_t>& out, std::size_t length, std::uint8_t base) {
     if (length <= 55) {
         out.push_back(static_cast<std::uint8_t>(base + length));
@@ -30,7 +28,7 @@ void append_bytes(std::vector<std::uint8_t>& out, std::span<const std::uint8_t> 
     out.insert(out.end(), bytes.begin(), bytes.end());
 }
 
-}  // namespace
+}
 
 std::vector<std::uint8_t> encode_bytes(std::span<const std::uint8_t> bytes) {
     std::vector<std::uint8_t> out;
@@ -72,4 +70,4 @@ std::vector<std::uint8_t> List::encode() const {
     return out;
 }
 
-}  // namespace hft::eth::rlp
+}

@@ -22,7 +22,7 @@ std::string canonical_type(simdjson::dom::element param) {
         out += canonical_type(component);
     }
     out += ')';
-    out += type.substr(5);  // array suffix of "tuple[]" / "tuple[2]"
+    out += type.substr(5);
     return out;
 }
 
@@ -79,7 +79,7 @@ const T& find_unique(const std::vector<T>& items, std::string_view name, const c
     return *found;
 }
 
-}  // namespace
+}
 
 Contract Contract::parse(std::string_view json) {
     simdjson::dom::parser parser;
@@ -87,7 +87,7 @@ Contract Contract::parse(std::string_view json) {
     simdjson::dom::element doc = parser.parse(padded);
     simdjson::dom::array entries;
     if (doc.get(entries) != simdjson::SUCCESS) {
-        entries = doc["abi"].get_array();  // Foundry / Hardhat artifact
+        entries = doc["abi"].get_array();
     }
 
     Contract contract;
@@ -152,4 +152,4 @@ const Event& Contract::event(std::string_view name) const {
     return find_unique(events_, name, "event");
 }
 
-}  // namespace hft::eth::abi
+}

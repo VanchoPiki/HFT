@@ -12,7 +12,7 @@ const u256 kQ96 = u256(1) << 96;
 
 V3Pool make_pool() {
     V3Pool pool(PoolInfo{.fee = 500, .tick_spacing = 10});
-    pool.reset(kQ96, 0, 1'000'000, /*block=*/100);
+    pool.reset(kQ96, 0, 1'000'000, 100);
     return pool;
 }
 
@@ -24,7 +24,7 @@ TEST(V3PoolTest, PriceOfSqrtOneIsOne) { EXPECT_DOUBLE_EQ(make_pool().raw_price()
 
 TEST(V3PoolTest, IgnoresEventsAlreadyInTheLoadedState) {
     V3Pool pool = make_pool();
-    EXPECT_FALSE(pool.apply(swap_to(2 * kQ96, 100, 5), 100, 3));  // same block as the RPC read
+    EXPECT_FALSE(pool.apply(swap_to(2 * kQ96, 100, 5), 100, 3));
     EXPECT_EQ(pool.sqrt_price_x96(), kQ96);
 }
 
@@ -36,7 +36,7 @@ TEST(V3PoolTest, AppliesNewerSwapsOnceAndInOrder) {
     EXPECT_EQ(pool.liquidity(), 7);
     EXPECT_DOUBLE_EQ(pool.raw_price(), 4.0);
 
-    EXPECT_FALSE(pool.apply(swap_to(kQ96, 0, 1), 101, 0));  // duplicate
+    EXPECT_FALSE(pool.apply(swap_to(kQ96, 0, 1), 101, 0));
     EXPECT_TRUE(pool.apply(swap_to(kQ96, 0, 1), 101, 1));
     EXPECT_EQ(pool.block(), 101u);
 }
@@ -54,7 +54,7 @@ TEST(V3PoolTest, MintAndBurnInRangeChangeActiveLiquidityAndTicks) {
 
     ASSERT_TRUE(pool.apply(LiquidityEvent{-60, 60, i256(-1000)}, 101, 1));
     EXPECT_EQ(pool.liquidity(), 1'000'000);
-    EXPECT_TRUE(pool.ticks().empty());  // gross went to zero: ticks uninitialized
+    EXPECT_TRUE(pool.ticks().empty());
 }
 
 TEST(V3PoolTest, MintOutOfRangeOnlyTouchesTicks) {
@@ -72,5 +72,5 @@ TEST(V3PoolTest, WithoutTickDataOnlyActiveLiquidityIsTracked) {
     EXPECT_TRUE(pool.ticks().empty());
 }
 
-}  // namespace
-}  // namespace hft::dex
+}
+}

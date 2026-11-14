@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.springframework.stereotype.Component;
 
-/** Latest heartbeat of the bot and ingestion counters, kept in memory. */
 @Component
 public class BotStatus {
 

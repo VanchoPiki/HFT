@@ -8,11 +8,8 @@
 
 namespace hft::eth::rlp {
 
-// RLP encoding of a single byte string.
 std::vector<std::uint8_t> encode_bytes(std::span<const std::uint8_t> bytes);
 
-// Builds an RLP list item by item. Integers are encoded as minimal big-endian byte
-// strings (0 -> empty string), as Ethereum transactions require.
 class List {
 public:
     List& add_bytes(std::span<const std::uint8_t> bytes);
@@ -26,4 +23,4 @@ private:
     std::vector<std::uint8_t> payload_;
 };
 
-}  // namespace hft::eth::rlp
+}

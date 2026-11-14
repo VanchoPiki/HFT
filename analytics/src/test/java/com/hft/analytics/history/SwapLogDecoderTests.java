@@ -11,7 +11,6 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 class SwapLogDecoderTests {
 
-	// A real Swap log of the WETH/USDC 0.05% pool on Arbitrum; expected values from `cast abi-decode`.
 	static final String DATA = "0x0000000000000000000000000000000000000000000000001147a2bb08dfa66b"
 			+ "ffffffffffffffffffffffffffffffffffffffffffffffffffffffff52538de2"
 			+ "000000000000000000000000000000000000000000032bc9a2321a8e40000000"
@@ -35,7 +34,6 @@ class SwapLogDecoderTests {
 
 	@Test
 	void swapTopicMatchesTheChain() {
-		// `cast sig-event "Swap(address,address,int256,int256,uint160,uint128,int24)"`
 		assertThat(UniswapAbi.SWAP_TOPIC)
 			.isEqualTo("0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67");
 	}

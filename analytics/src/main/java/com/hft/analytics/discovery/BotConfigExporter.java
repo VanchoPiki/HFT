@@ -12,11 +12,6 @@ import tools.jackson.databind.node.ObjectNode;
 
 import com.hft.analytics.chain.ChainProperties;
 
-/**
- * Builds a config file for the C++ bot (same format as core/config/arbitrum.json) from the
- * discovered pools: only pairs that trade against WETH in at least two pools with
- * liquidity, because the bot arbitrages two pools of one pair and values profit in WETH.
- */
 @Component
 public class BotConfigExporter {
 
@@ -29,7 +24,6 @@ public class BotConfigExporter {
 		this.chain = chain;
 	}
 
-	/** Pair name -> number of pools with liquidity, for pairs the bot can trade. */
 	public Map<String, Integer> tradablePairs(List<DiscoveredPool> pools) {
 		Map<String, Integer> liquidPools = new TreeMap<>();
 		for (DiscoveredPool p : pools) {

@@ -1,6 +1,3 @@
-// Stage 4 acceptance check: local Uniswap V3 quotes must equal QuoterV2 (eth_call at the
-// same block) to the wei. Exit code 0 only if every compared quote matches.
-
 #include <algorithm>
 #include <cmath>
 #include <cstdio>
@@ -27,8 +24,6 @@ struct Sample {
     bool matched = false;
 };
 
-// Writes the state of the `max_pools` pools whose verified quotes crossed the most ticks,
-// together with the chain's answers, as an offline regression fixture for unit tests.
 void dump_fixture(const std::string& path, std::uint64_t block, const std::vector<Sample>& samples,
                   std::size_t max_pools) {
     std::map<const dex::V3Pool*, int> crossed;
@@ -77,7 +72,7 @@ void dump_fixture(const std::string& path, std::uint64_t block, const std::vecto
     std::printf("wrote %zu pools to %s\n", ranked.size(), path.c_str());
 }
 
-}  // namespace
+}
 
 int main(int argc, char** argv) {
     std::string config_path = "config/arbitrum.json";
@@ -110,8 +105,6 @@ int main(int argc, char** argv) {
         std::printf("block %llu, %zu pools\n", static_cast<unsigned long long>(block),
                     market.pools().size());
 
-        // Amounts are log-uniform between 1e-7 and 0.3 of the pool's virtual reserve of the
-        // input token, so both tiny swaps and swaps crossing many ticks get tested.
         std::mt19937 rng(42);
         std::uniform_real_distribution<double> log_fraction(-7.0, std::log10(0.3));
         std::vector<Sample> samples;

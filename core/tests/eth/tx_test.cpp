@@ -8,7 +8,6 @@
 namespace hft::eth {
 namespace {
 
-// Anvil's well-known test account #0. Never use it for anything real.
 constexpr std::string_view kTestKey =
     "0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80";
 
@@ -16,13 +15,13 @@ Address addr(std::string_view hex) { return *Address::from_hex(hex); }
 
 TEST(SignerTest, DerivesTheAddress) {
     EXPECT_EQ(Signer::from_hex(kTestKey).address().to_checksum(),
-              "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");  // `cast wallet address`
+              "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266");
 }
 
 TEST(SignerTest, RejectsInvalidKeys) {
     EXPECT_THROW(Signer::from_hex("0x00"), std::invalid_argument);
-    EXPECT_THROW(Signer::from_hex("0x" + std::string(64, '0')), std::invalid_argument);  // zero
-    EXPECT_THROW(Signer::from_hex("0x" + std::string(64, 'f')), std::invalid_argument);  // > order
+    EXPECT_THROW(Signer::from_hex("0x" + std::string(64, '0')), std::invalid_argument);
+    EXPECT_THROW(Signer::from_hex("0x" + std::string(64, 'f')), std::invalid_argument);
 }
 
 TEST(SignerTest, SignaturesAreLowS) {
@@ -35,9 +34,6 @@ TEST(SignerTest, SignaturesAreLowS) {
     }
 }
 
-// Expected bytes from `cast mktx --private-key <anvil #0> --chain 31337 --nonce 0
-// --gas-limit 21000 --gas-price 2000000000 --priority-gas-price 1000000000
-// --value 1000000000000000000 0x70997970C51812dc3A010C7d01b50e0d17dc79C8`.
 TEST(TxTest, ValueTransferMatchesCast) {
     Eip1559Tx tx;
     tx.chain_id = 31337;
@@ -53,8 +49,6 @@ TEST(TxTest, ValueTransferMatchesCast) {
               "6a37a06d5a3b027177cc2841199b70400fece0a29ac5eabee2fa9cbf9b6aa213716c48");
 }
 
-// The bot's real transaction shape: ArbExecutor.execute(...) on Arbitrum. From `cast mktx
-// --chain 42161 --nonce 7 --gas-limit 420000 --gas-price 20000000 --priority-gas-price 1000`.
 TEST(TxTest, ExecutorCallMatchesCast) {
     Eip1559Tx tx;
     tx.chain_id = 42161;
@@ -83,5 +77,5 @@ TEST(TxTest, ExecutorCallMatchesCast) {
               "dbe09ea2601429f6afd7b213db0c16");
 }
 
-}  // namespace
-}  // namespace hft::eth
+}
+}

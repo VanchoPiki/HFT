@@ -24,7 +24,6 @@ import com.hft.analytics.discovery.DiscoveredPoolRepository;
 import com.hft.analytics.discovery.PoolDiscoveryService;
 import com.hft.analytics.history.SwapHistory;
 
-/** Research tools: pool discovery, bot config export, swap history and backtests. */
 @RestController
 @RequestMapping("/api")
 public class ResearchController {
@@ -59,7 +58,6 @@ public class ResearchController {
 		return Map.of("pools", pools, "tradablePairs", exporter.tradablePairs(pools));
 	}
 
-	/** A ready-to-use config for the C++ bot: save as core/config/generated.json. */
 	@GetMapping("/bot-config")
 	public ResponseEntity<ObjectNode> botConfig(@RequestParam(defaultValue = "0.00001") double minProfitWeth,
 			@RequestParam(defaultValue = "5") double maxInputWeth) {

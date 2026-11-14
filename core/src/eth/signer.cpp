@@ -19,12 +19,11 @@ void wipe(std::span<std::uint8_t> bytes) {
     }
 }
 
-}  // namespace
+}
 
 Signer::Signer(std::span<const std::uint8_t, 32> private_key)
     : ctx_(secp256k1_context_create(SECP256K1_CONTEXT_NONE)) {
     std::copy(private_key.begin(), private_key.end(), key_.begin());
-    // A throwing constructor never runs the destructor: clean up by hand.
     auto fail = [this](const char* message) {
         wipe(key_);
         secp256k1_context_destroy(ctx_);
@@ -33,7 +32,6 @@ Signer::Signer(std::span<const std::uint8_t, 32> private_key)
     if (secp256k1_ec_seckey_verify(ctx_, key_.data()) != 1) {
         fail("signer: invalid private key");
     }
-    // Blinding against side channels; does not change the (deterministic) signatures.
     std::array<std::uint8_t, 32> seed{};
     std::random_device rd;
     std::generate(seed.begin(), seed.end(), [&] { return static_cast<std::uint8_t>(rd()); });
@@ -41,7 +39,6 @@ Signer::Signer(std::span<const std::uint8_t, 32> private_key)
         fail("signer: context randomization failed");
     }
 
-    // Address = last 20 bytes of keccak256 of the uncompressed public key without 0x04.
     secp256k1_pubkey pubkey;
     if (secp256k1_ec_pubkey_create(ctx_, &pubkey, key_.data()) != 1) {
         fail("signer: public key derivation failed");
@@ -94,4 +91,4 @@ Signature Signer::sign(const Hash& hash) const {
     return out;
 }
 
-}  // namespace hft::eth
+}

@@ -45,7 +45,7 @@ Encoder& Encoder::add_bytes32(const Word& word) {
 
 Encoder& Encoder::add_bytes(std::span<const std::uint8_t> data) {
     dynamic_.push_back({head_.size(), tail_.size()});
-    head_.push_back(Word{});  // offset, patched in finish()
+    head_.push_back(Word{});
     const Word length = to_word(data.size());
     tail_.insert(tail_.end(), length.begin(), length.end());
     tail_.insert(tail_.end(), data.begin(), data.end());
@@ -130,4 +130,4 @@ void Reader::skip(std::size_t words) {
     pos_ += 32 * words;
 }
 
-}  // namespace hft::eth::abi
+}

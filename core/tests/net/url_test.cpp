@@ -34,5 +34,5 @@ TEST(UrlTest, RejectsBadUrls) {
     EXPECT_THROW(Url::parse("http://:80"), std::invalid_argument);
 }
 
-}  // namespace
-}  // namespace hft::net
+}
+}

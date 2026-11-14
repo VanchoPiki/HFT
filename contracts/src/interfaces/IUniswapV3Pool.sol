@@ -1,7 +1,6 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.24;
 
-/// Subset of the Uniswap V3 pool interface the bot and the executor use.
 interface IUniswapV3Pool {
     event Swap(
         address indexed sender,

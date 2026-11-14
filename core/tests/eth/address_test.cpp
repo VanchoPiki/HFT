@@ -7,7 +7,6 @@
 namespace hft::eth {
 namespace {
 
-// Checksums from `cast to-check-sum-address`.
 TEST(AddressTest, Eip55Checksum) {
     EXPECT_EQ(Address::from_hex("0x82af49447d8a07e3bd95bd0d56f35241523fbab1")->to_checksum(),
               "0x82aF49447D8a07e3bd95BD0d56f35241523fBab1");
@@ -26,7 +25,6 @@ TEST(AddressTest, RejectsWrongLength) {
     EXPECT_FALSE(Address::from_hex(""));
 }
 
-// Uniswap orders pool tokens by address: WETH (0x82..) is token0, USDC (0xaf..) is token1.
 TEST(AddressTest, OrdersLikeSolidity) {
     const auto weth = *Address::from_hex("0x82af49447d8a07e3bd95bd0d56f35241523fbab1");
     const auto usdc = *Address::from_hex("0xaf88d065e77c8cc2239327c5edb3a432268e5831");
@@ -41,5 +39,5 @@ TEST(AddressTest, WorksAsHashKey) {
     EXPECT_TRUE(Address{}.is_zero());
 }
 
-}  // namespace
-}  // namespace hft::eth
+}
+}

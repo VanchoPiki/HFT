@@ -8,7 +8,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** A Uniswap V3 pool found through the factory, with its state at discovery time. */
 @Entity
 @Table(name = "discovered_pools")
 public class DiscoveredPool {
@@ -74,7 +73,6 @@ public class DiscoveredPool {
 		this.discoveredAt = discoveredAt;
 	}
 
-	/** token1 per token0 with decimals applied: (sqrtPriceX96 / 2^96)^2 * 10^(d0 - d1). */
 	public static double priceOf(BigInteger sqrtPriceX96, int decimals0, int decimals1) {
 		double sqrt = sqrtPriceX96.doubleValue() / Math.pow(2, 96);
 		return sqrt * sqrt * Math.pow(10, decimals0 - decimals1);

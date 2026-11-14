@@ -44,7 +44,6 @@ TEST(HexTest, RoundTripsAllByteValues) {
     EXPECT_EQ(from_hex(to_hex(all)), all);
 }
 
-// WETH on Arbitrum One, as checksummed on block explorers.
 TEST(HexTest, DecodesAddressIntoFixedBuffer) {
     std::array<std::uint8_t, 20> address{};
     ASSERT_TRUE(from_hex("0x82aF49447D8a07e3bd95BD0d56f35241523fBab1", address));
@@ -53,9 +52,9 @@ TEST(HexTest, DecodesAddressIntoFixedBuffer) {
 
 TEST(HexTest, FixedBufferRejectsLengthMismatch) {
     std::array<std::uint8_t, 20> address{};
-    EXPECT_FALSE(from_hex("0x82af49447d8a07e3bd95bd0d56f35241523fba", address));    // 19 bytes
-    EXPECT_FALSE(from_hex("0x82af49447d8a07e3bd95bd0d56f35241523fbab100", address));  // 21 bytes
+    EXPECT_FALSE(from_hex("0x82af49447d8a07e3bd95bd0d56f35241523fba", address));
+    EXPECT_FALSE(from_hex("0x82af49447d8a07e3bd95bd0d56f35241523fbab100", address));
 }
 
-}  // namespace
-}  // namespace hft::eth
+}
+}

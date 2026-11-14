@@ -10,7 +10,6 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
 
-/** State of one Uniswap V3 pool after a block (event {@code pool_snapshot}). */
 @Entity
 @Table(name = "pool_snapshots")
 public class PoolSnapshot {

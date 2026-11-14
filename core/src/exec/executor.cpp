@@ -53,7 +53,7 @@ std::string execution_event(const Plan& plan, std::uint64_t gas_limit, const Att
         gas_limit, a.max_fee.str(), json_escape(a.error), a.simulate_us, a.sign_us, a.send_us);
 }
 
-}  // namespace
+}
 
 Executor::Executor(ExecutionConfig config, const std::string& rpc_url,
                    std::chrono::milliseconds rpc_timeout, std::uint64_t chain_id,
@@ -82,7 +82,7 @@ Executor::~Executor() {
 bool Executor::submit(const Plan& plan) {
     bool expected = false;
     if (!busy_.compare_exchange_strong(expected, true)) {
-        return false;  // a transaction is in flight: never queue stale opportunities
+        return false;
     }
     if (!queue_.try_push(plan)) {
         busy_ = false;
@@ -101,7 +101,7 @@ void Executor::run() {
             execute(plan);
         } catch (const std::exception& e) {
             log::error("executor: opportunity #{}: {}", plan.opportunity_id, e.what());
-            nonce_known_ = false;  // resync on the next attempt
+            nonce_known_ = false;
         }
         busy_ = false;
     }
@@ -129,8 +129,6 @@ void Executor::execute(const Plan& plan) {
                               .add_uint(plan.min_profit)
                               .finish();
 
-    // Stage 8: run the exact call against the latest state first. A revert here means the
-    // opportunity is already gone (or was never real): do not pay gas for it.
     if (config_.simulate) {
         const auto start = Clock::now();
         try {
@@ -156,7 +154,7 @@ void Executor::execute(const Plan& plan) {
     eth::Eip1559Tx tx;
     tx.chain_id = chain_id_;
     tx.nonce = nonce_;
-    tx.max_priority_fee_per_gas = 0;  // Arbitrum ignores tips; the sequencer is first come first served
+    tx.max_priority_fee_per_gas = 0;
     const auto multiplier_permille = static_cast<std::uint64_t>(config_.max_fee_multiplier * 1000);
     tx.max_fee_per_gas = current_gas_price() * multiplier_permille / 1000;
     tx.gas_limit = config_.gas_limit;
@@ -192,7 +190,6 @@ void Executor::execute(const Plan& plan) {
               plan.opportunity_id, attempt.tx_hash, tx.nonce, attempt.simulate_us, attempt.sign_us,
               attempt.send_us);
 
-    // Wait for the receipt and read the realized profit from the Arbitrage event.
     const auto deadline = Clock::now() + config_.receipt_timeout;
     std::optional<net::Receipt> receipt;
     while (!receipt && Clock::now() < deadline) {
@@ -211,7 +208,7 @@ void Executor::execute(const Plan& plan) {
     for (const auto& l : receipt->logs) {
         if (l.address == config_.contract && !l.topics.empty() && l.topics[0] == arbitrage_topic_) {
             eth::abi::Reader data(l.data);
-            data.skip();  // amountIn
+            data.skip();
             profit = data.read_uint();
         }
     }
@@ -230,4 +227,4 @@ void Executor::execute(const Plan& plan) {
               receipt->gas_used, profit.str(), profit_weth);
 }
 
-}  // namespace hft::exec
+}

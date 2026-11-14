@@ -19,7 +19,6 @@ import com.hft.analytics.domain.PoolSnapshot;
 import com.hft.analytics.domain.PoolSnapshotRepository;
 import com.hft.analytics.ingest.BotStatus;
 
-/** Read API behind the dashboard (src/main/resources/static/index.html). */
 @RestController
 @RequestMapping("/api")
 public class DashboardController {
@@ -58,7 +57,6 @@ public class DashboardController {
 		return snapshots.findLatestPerPool();
 	}
 
-	/** Price of every pool of a pair over the last {@code minutes}: the spread chart. */
 	@GetMapping("/prices")
 	public List<PricePoint> prices(@RequestParam String pair, @RequestParam(defaultValue = "60") int minutes) {
 		Instant after = Instant.now().minus(Duration.ofMinutes(Math.clamp(minutes, 1, 24 * 60)));
@@ -81,7 +79,6 @@ public class DashboardController {
 	public record PnlPoint(Instant ts, double realizedWeth, double cumulativeWeth) {
 	}
 
-	/** Cumulative realized PnL of mined transactions, in mining order. */
 	@GetMapping("/pnl")
 	public List<PnlPoint> pnl() {
 		List<PnlPoint> points = new java.util.ArrayList<>();
@@ -101,7 +98,6 @@ public class DashboardController {
 			double avgSignUs, double avgSendUs) {
 	}
 
-	/** Histogram of the bot's decision time (event -> sized opportunity) and execution step averages. */
 	@GetMapping("/latency")
 	public Latency latency() {
 		long[] samples = opportunities.findAllComputeUs().stream().mapToLong(Long::longValue).sorted().toArray();

@@ -32,7 +32,6 @@ TEST(MarketTest, GroupsPoolsByPair) {
     EXPECT_EQ(m.pair_name(a), "WETH/USDC");
 }
 
-// sqrtPriceX96 of the WETH/USDC 0.05% pool from a real Swap event: ~2342 USDC per WETH.
 TEST(MarketTest, HumanPriceAppliesDecimals) {
     Market m;
     m.add_token({kWeth, "WETH", 18});
@@ -49,5 +48,5 @@ TEST(MarketTest, FeeLabels) {
     EXPECT_EQ(fee_label(10000), "1%");
 }
 
-}  // namespace
-}  // namespace hft::dex
+}
+}

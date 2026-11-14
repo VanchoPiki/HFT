@@ -9,7 +9,6 @@ import org.testcontainers.utility.DockerImageName;
 @TestConfiguration(proxyBeanMethods = false)
 public class TestcontainersConfiguration {
 
-	// Same major version as docker-compose.yml.
 	@Bean
 	@ServiceConnection
 	PostgreSQLContainer postgresContainer() {

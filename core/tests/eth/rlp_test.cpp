@@ -9,8 +9,6 @@
 namespace hft::eth::rlp {
 namespace {
 
-// Expected encodings come from `cast to-rlp`.
-
 std::vector<std::uint8_t> str(std::string_view s) { return {s.begin(), s.end()}; }
 
 TEST(RlpTest, ByteStrings) {
@@ -22,7 +20,7 @@ TEST(RlpTest, ByteStrings) {
 }
 
 TEST(RlpTest, LongString) {
-    const auto lorem = str("Lorem ipsum dolor sit amet, consectetur adipisicing elit");  // 56 bytes
+    const auto lorem = str("Lorem ipsum dolor sit amet, consectetur adipisicing elit");
     EXPECT_EQ(to_hex(encode_bytes(lorem)),
               "0xb8384c6f72656d20697073756d20646f6c6f722073697420616d65742c20636f6e7365637465"
               "747572206164697069736963696e6720656c6974");
@@ -35,7 +33,6 @@ TEST(RlpTest, Lists) {
 }
 
 TEST(RlpTest, NestedLists) {
-    // [ [], [[]], [ [], [[]] ] ]
     const List empty;
     const List one = List().add_list(empty);
     const List two = List().add_list(empty).add_list(one);
@@ -51,5 +48,5 @@ TEST(RlpTest, IntegersAreMinimalBigEndian) {
     EXPECT_EQ(to_hex(List().add_uint(u256{0}).encode()), "0xc180");
 }
 
-}  // namespace
-}  // namespace hft::eth::rlp
+}
+}

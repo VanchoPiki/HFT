@@ -7,19 +7,6 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Replays historical Swap events block by block and asks, at the end of every block: could a
- * two-pool arbitrage between two pools of the same pair have made money after gas?
- *
- * <p>Each pool is modelled by its virtual reserves at the current price (x = L / sqrtP,
- * y = L * sqrtP), i.e. as a constant-product pool. For two such pools the optimal trade has
- * a closed form (the same formula the C++ strategy uses for its first guess), so the replay
- * is fast. Liquidity can only change at initialized ticks, which are multiples of the tick
- * spacing, so trades are capped to keep both prices inside their current tick-spacing
- * interval, where the model holds. What it does not see: liquidity added or removed by
- * Mint/Burn after a pool's last swap. Checked against exact QuoterV2 quotes at the same
- * blocks, the top results agree within a few percent.
- */
 public final class Backtester {
 
 	public record Pool(String address, String pair, String symbol0, String symbol1, int decimals0, int decimals1,
@@ -38,7 +25,6 @@ public final class Backtester {
 
 	}
 
-	/** One profitable moment: swap amountIn of tokenIn in pool A, back in pool B. */
 	public record Found(long block, String pair, String poolA, int feeA, String poolB, int feeB, String tokenIn,
 			double amountIn, double profitWeth) {
 	}
@@ -47,11 +33,9 @@ public final class Backtester {
 			double bestProfitWeth) {
 	}
 
-	/** Optimal size and gross profit of a cycle, in raw units of the start token. */
 	record Cycle(double amountIn, double profit) {
 	}
 
-	/** Pool state with the bounds of the tick-spacing interval the price is in (raw sqrt prices). */
 	private record State(double sqrtPrice, double liquidity, double sqrtLower, double sqrtUpper) {
 
 		static State of(Swap s, int tickSpacing) {
@@ -68,7 +52,6 @@ public final class Backtester {
 			return liquidity * sqrtPrice;
 		}
 
-		/** Largest input (fee included) that keeps the price inside the current interval. */
 		double maxIn(boolean zeroForOne, double gamma) {
 			return zeroForOne ? liquidity * (1 / sqrtLower - 1 / sqrtPrice) / gamma
 					: liquidity * (sqrtUpper - sqrtPrice) / gamma;
@@ -87,12 +70,8 @@ public final class Backtester {
 			byPair.computeIfAbsent(p.pair(), k -> new ArrayList<>()).add(p);
 		}
 		Map<String, State> state = new HashMap<>();
-		// best opportunity per (block, pair): a dislocation that lasts a block is one trade
 		Map<String, Found> best = new LinkedHashMap<>();
 
-		// Markets are judged at the end of each block. A dislocation created and closed inside
-		// one block was taken by someone sitting next to the sequencer, not by a bot that
-		// reacts to the block's events.
 		int i = 0;
 		while (i < swaps.size()) {
 			long block = swaps.get(i).block();
@@ -137,7 +116,7 @@ public final class Backtester {
 			int decimals = startWithToken0 ? a.decimals0() : a.decimals1();
 			double profitWeth = toWeth(a, sa, tokenIn, c.profit(), params.weth());
 			if (Double.isNaN(profitWeth)) {
-				continue; // pair without WETH: cannot value it
+				continue;
 			}
 			double net = profitWeth - params.gasWeth();
 			if (net < params.minProfitWeth()) {
@@ -150,12 +129,6 @@ public final class Backtester {
 		}
 	}
 
-	/**
-	 * Sell the start token in pool A, buy it back in pool B. Two chained constant-product
-	 * swaps give out = a*dx / (b + c*dx); the profit out - dx peaks at dx = (sqrt(ab) - b) / c.
-	 * The size is then capped so that neither price leaves its tick-spacing interval.
-	 * Null if no size makes a gross profit.
-	 */
 	static Cycle optimalCycle(State sa, int feeA, State sb, int feeB, boolean startWithToken0) {
 		double inA = startWithToken0 ? sa.reserve0() : sa.reserve1();
 		double outA = startWithToken0 ? sa.reserve1() : sa.reserve0();
@@ -171,8 +144,6 @@ public final class Backtester {
 		}
 		double dx = (Math.sqrt(a) * Math.sqrt(b) - b) / c;
 
-		// Pool A must stay in range, and its output (pool B's input) too: invert
-		// outA(dx) = ga*outA*dx / (inA + ga*dx) at B's limit.
 		double capA = sa.maxIn(startWithToken0, ga);
 		double maxInB = sb.maxIn(!startWithToken0, gb);
 		double capB = maxInB >= ga * outA ? Double.POSITIVE_INFINITY : maxInB * inA / (ga * (outA - maxInB));
@@ -184,16 +155,14 @@ public final class Backtester {
 		return profit > 0 ? new Cycle(dx, profit) : null;
 	}
 
-	/** Pools without tick bounds (full-range liquidity): the plain closed form. */
 	static Cycle optimalCycle(double sqrtPriceA, double liquidityA, int feeA, double sqrtPriceB, double liquidityB,
 			int feeB, boolean startWithToken0) {
 		return optimalCycle(new State(sqrtPriceA, liquidityA, 0, Double.POSITIVE_INFINITY), feeA,
 				new State(sqrtPriceB, liquidityB, 0, Double.POSITIVE_INFINITY), feeB, startWithToken0);
 	}
 
-	/** Raw amount of {@code token} (one side of pool p) in WETH, NaN if p does not trade against WETH. */
 	private static double toWeth(Pool p, State s, String token, double raw, String weth) {
-		double rawPrice = s.sqrtPrice() * s.sqrtPrice(); // raw token1 per raw token0
+		double rawPrice = s.sqrtPrice() * s.sqrtPrice();
 		if (token.equals(weth)) {
 			return raw / 1e18;
 		}

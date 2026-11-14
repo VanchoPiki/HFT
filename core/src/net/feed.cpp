@@ -12,7 +12,6 @@
 namespace hft::net {
 namespace {
 
-// Provider URLs carry the API key in the path: log only scheme and host.
 std::string redacted(const std::string& url) {
     const Url u = Url::parse(url);
     return u.scheme + "://" + u.host + (u.target.size() > 1 ? "/…" : "");
@@ -28,7 +27,7 @@ void sleep_unless_stopped(std::chrono::milliseconds total, const std::atomic<boo
     }
 }
 
-}  // namespace
+}
 
 WsFeed::WsFeed(std::string ws_url, LogFilter filter)
     : url_(std::move(ws_url)), filter_(std::move(filter)) {}
@@ -49,7 +48,6 @@ void WsFeed::run(FeedHandler& handler, const std::atomic<bool>& stop) {
             bool announced = false;
             bool idle_reported = true;
             while (!stop) {
-                // Logs of one block arrive back to back; a short silence ends the burst.
                 const auto message = ws.read_for(kBurstGap);
                 if (!message) {
                     if (!idle_reported) {
@@ -115,10 +113,10 @@ void PollingFeed::run(FeedHandler& handler, const std::atomic<bool>& stop) {
             }
         } catch (const std::exception& e) {
             log::warn("polling feed: {}", e.what());
-            connected = false;  // forces a resync: logs may have been skipped
+            connected = false;
         }
         sleep_unless_stopped(interval_, stop);
     }
 }
 
-}  // namespace hft::net
+}
